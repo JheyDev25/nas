@@ -453,3 +453,4 @@ function t(key, lang) {
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = { translations, t };
 }
+

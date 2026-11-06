@@ -1,4 +1,5 @@
 @echo off
+cd /d "%~dp0"
 title Vibe Tindahan - Smart Business Management System
 echo ====================================================
 echo 🛍️  Vibe Tindahan – Smart Business Management System
