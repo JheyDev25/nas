@@ -17,6 +17,22 @@ async function runHttpTests() {
       const healthData = await healthRes.json();
       assert.strictEqual(healthData.status, 'ok');
 
+      // 1.1 Settings Update (activate changing information)
+      console.log('Test 1.1: Store settings update...');
+      const settingsUpdateRes = await fetch(`${baseUrl}/api/settings`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: 'f Tindahan',
+          logo: '🏪',
+          tagline: 'Ang Maaasahang Tindahan ng Barangay'
+        })
+      });
+      assert.strictEqual(settingsUpdateRes.status, 200);
+      const updatedSettings = await settingsUpdateRes.json();
+      assert.strictEqual(updatedSettings.name, 'f Tindahan');
+      assert.strictEqual(updatedSettings.logo, '🏪');
+
       // 2. Products List
       console.log('Test 2: Products list and barcode lookup...');
       const prodsRes = await fetch(`${baseUrl}/api/products`);
@@ -191,3 +207,4 @@ async function runHttpTests() {
 }
 
 runHttpTests();
+

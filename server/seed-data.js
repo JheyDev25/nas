@@ -2,6 +2,7 @@
 
 const defaultStoreSettings = {
   name: "Vibe Tindahan",
+  logo: "🏪",
   tagline: "Ang Maaasahang Tindahan ng Barangay",
   owner: "Ate Baby & Kuya Jun",
   address: "123 Mabini St., Brgy. San Antonio, Pasig City",
@@ -592,3 +593,4 @@ module.exports = {
   defaultSales,
   defaultExpenses
 };
+

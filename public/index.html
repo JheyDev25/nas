@@ -15,9 +15,9 @@
   <header class="top-nav">
     <div class="nav-container">
       <div class="brand-section">
-        <div class="brand-logo">🏪</div>
+        <div class="brand-logo" id="navStoreLogo">🏪</div>
         <div class="brand-title">
-          <h1>Vibe Tindahan <span class="brand-tag">PRO POS</span></h1>
+          <h1><span id="navStoreName">Vibe Tindahan</span> <span class="brand-tag">PRO POS</span></h1>
           <div class="brand-subtitle" id="navStoreTagline">Ang Maaasahang Tindahan ng Barangay</div>
         </div>
       </div>
@@ -586,36 +586,69 @@
       <div class="responsive-grid-1-1">
         <!-- Store Information -->
         <div class="card">
-          <h3 style="font-size:1.1rem; font-weight:800; margin-bottom:1rem;">🏪 Impormasyon ng Tindahan</h3>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
+            <h3 style="font-size:1.1rem; font-weight:800; display:flex; align-items:center; gap:0.5rem;">
+              <span id="previewFormLogo">🏪</span> Impormasyon ng Tindahan
+            </h3>
+            <span class="badge badge-success" id="settingsLiveBadge">⚡ Live Synchronized</span>
+          </div>
+
+          <!-- Live Preview Banner -->
+          <div style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#fff; border-radius:var(--radius-md); padding:0.75rem 1rem; margin-bottom:1rem; box-shadow:0 2px 8px rgba(2,132,199,0.25);">
+            <div style="font-size:0.7rem; text-transform:uppercase; font-weight:700; opacity:0.8; letter-spacing:1px; margin-bottom:0.25rem;">Live Header Preview</div>
+            <div style="display:flex; align-items:center; gap:0.6rem;">
+              <div style="font-size:1.5rem; background:rgba(255,255,255,0.2); width:36px; height:36px; border-radius:6px; display:flex; align-items:center; justify-content:center;" id="previewHeaderIcon">🏪</div>
+              <div>
+                <strong style="font-size:1rem; line-height:1.2; display:block;" id="previewHeaderName">Vibe Tindahan</strong>
+                <small style="font-size:0.75rem; opacity:0.9;" id="previewHeaderTagline">Ang Maaasahang Tindahan ng Barangay</small>
+              </div>
+            </div>
+          </div>
+
           <form id="storeSettingsForm" onsubmit="saveStoreSettings(event)">
-            <div class="form-group">
-              <label class="form-label">Pangalan ng Tindahan:</label>
-              <input type="text" id="settingStoreName" class="form-control" required>
+            <div class="form-row">
+              <div class="form-group" style="flex:1;">
+                <label class="form-label">Pangalan ng Tindahan *:</label>
+                <input type="text" id="settingStoreName" class="form-control" required placeholder="Hal. Vibe Tindahan" oninput="handleSettingsLiveInput()">
+              </div>
+              <div class="form-group" style="max-width:140px;">
+                <label class="form-label">Icon / Logo:</label>
+                <select id="settingStoreLogo" class="form-control" onchange="handleSettingsLiveInput()">
+                  <option value="🏪">🏪 Tindahan</option>
+                  <option value="🛒">🛒 Grocery</option>
+                  <option value="🛍️">🛍️ Boutique</option>
+                  <option value="☕">☕ Kapehan</option>
+                  <option value="🥩">🥩 Karinderya</option>
+                  <option value="🌾">🌾 Bigasan</option>
+                  <option value="🥤">🥤 Refreshment</option>
+                  <option value="📦">📦 Mini Mart</option>
+                </select>
+              </div>
             </div>
             <div class="form-group">
               <label class="form-label">Slogan o Tagline:</label>
-              <input type="text" id="settingStoreTagline" class="form-control">
+              <input type="text" id="settingStoreTagline" class="form-control" placeholder="Hal. Ang Maaasahang Tindahan ng Barangay" oninput="handleSettingsLiveInput()">
             </div>
             <div class="form-row">
               <div class="form-group">
                 <label class="form-label">May-ari / Tindero:</label>
-                <input type="text" id="settingStoreOwner" class="form-control">
+                <input type="text" id="settingStoreOwner" class="form-control" placeholder="Hal. Ate Baby & Kuya Jun">
               </div>
               <div class="form-group">
                 <label class="form-label">Telepono:</label>
-                <input type="text" id="settingStorePhone" class="form-control">
+                <input type="text" id="settingStorePhone" class="form-control" placeholder="Hal. 0917-888-8423">
               </div>
             </div>
             <div class="form-group">
               <label class="form-label">Tirahan / Address:</label>
-              <input type="text" id="settingStoreAddress" class="form-control">
+              <input type="text" id="settingStoreAddress" class="form-control" placeholder="Hal. 123 Mabini St., Brgy. San Antonio, Pasig City">
             </div>
             <div class="form-group">
               <label class="form-label">Mensahe sa Ibaba ng Resibo (Receipt Footer):</label>
-              <textarea id="settingReceiptFooter" class="form-control" rows="2"></textarea>
+              <textarea id="settingReceiptFooter" class="form-control" rows="2" placeholder="Mensahe para sa resibo"></textarea>
             </div>
-            <button type="submit" class="btn btn-primary">
-              💾 I-save ang Settings
+            <button type="submit" class="btn btn-primary" id="saveSettingsBtn">
+              💾 I-save at I-activate ang Settings
             </button>
           </form>
         </div>

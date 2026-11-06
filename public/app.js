@@ -162,13 +162,99 @@ async function initApp() {
 async function fetchSettings() {
   const res = await fetch('/api/settings');
   state.settings = await res.json();
-  document.getElementById('navStoreTagline').textContent = state.settings.tagline || 'Ang Maaasahang Tindahan';
-  document.getElementById('settingStoreName').value = state.settings.name || '';
-  document.getElementById('settingStoreTagline').value = state.settings.tagline || '';
-  document.getElementById('settingStoreOwner').value = state.settings.owner || '';
-  document.getElementById('settingStorePhone').value = state.settings.phone || '';
-  document.getElementById('settingStoreAddress').value = state.settings.address || '';
-  document.getElementById('settingReceiptFooter').value = state.settings.receiptFooter || '';
+  applyStoreSettings(state.settings);
+}
+
+function applyStoreSettings(settings) {
+  if (!settings) return;
+  const name = settings.name || 'Vibe Tindahan';
+  const logo = settings.logo || '🏪';
+  const tagline = settings.tagline || 'Ang Maaasahang Tindahan ng Barangay';
+
+  // 1. Update Header Navigation Branding
+  const nameEl = document.getElementById('navStoreName');
+  if (nameEl) nameEl.textContent = name;
+
+  const logoEl = document.getElementById('navStoreLogo');
+  if (logoEl) logoEl.textContent = logo;
+
+  const taglineEl = document.getElementById('navStoreTagline');
+  if (taglineEl) taglineEl.textContent = tagline;
+
+  // 2. Update Browser Tab Title
+  document.title = `${name} – Smart Business Management System`;
+
+  // 3. Update Live Settings Preview Box
+  const pFormLogo = document.getElementById('previewFormLogo');
+  if (pFormLogo) pFormLogo.textContent = logo;
+
+  const pHeaderIcon = document.getElementById('previewHeaderIcon');
+  if (pHeaderIcon) pHeaderIcon.textContent = logo;
+
+  const pHeaderName = document.getElementById('previewHeaderName');
+  if (pHeaderName) pHeaderName.textContent = name;
+
+  const pHeaderTagline = document.getElementById('previewHeaderTagline');
+  if (pHeaderTagline) pHeaderTagline.textContent = tagline;
+
+  // 4. Update Form Inputs if not actively being typed in
+  const nameInput = document.getElementById('settingStoreName');
+  if (nameInput && document.activeElement !== nameInput) nameInput.value = settings.name || '';
+
+  const logoSelect = document.getElementById('settingStoreLogo');
+  if (logoSelect && document.activeElement !== logoSelect) logoSelect.value = settings.logo || '🏪';
+
+  const taglineInput = document.getElementById('settingStoreTagline');
+  if (taglineInput && document.activeElement !== taglineInput) taglineInput.value = settings.tagline || '';
+
+  const ownerInput = document.getElementById('settingStoreOwner');
+  if (ownerInput && document.activeElement !== ownerInput) ownerInput.value = settings.owner || '';
+
+  const phoneInput = document.getElementById('settingStorePhone');
+  if (phoneInput && document.activeElement !== phoneInput) phoneInput.value = settings.phone || '';
+
+  const addressInput = document.getElementById('settingStoreAddress');
+  if (addressInput && document.activeElement !== addressInput) addressInput.value = settings.address || '';
+
+  const footerInput = document.getElementById('settingReceiptFooter');
+  if (footerInput && document.activeElement !== footerInput) footerInput.value = settings.receiptFooter || '';
+}
+
+function handleSettingsLiveInput() {
+  const name = document.getElementById('settingStoreName').value.trim() || 'Vibe Tindahan';
+  const logo = document.getElementById('settingStoreLogo').value || '🏪';
+  const tagline = document.getElementById('settingStoreTagline').value.trim() || 'Ang Maaasahang Tindahan ng Barangay';
+
+  // Immediate live header reflection
+  const nameEl = document.getElementById('navStoreName');
+  if (nameEl) nameEl.textContent = name;
+
+  const logoEl = document.getElementById('navStoreLogo');
+  if (logoEl) logoEl.textContent = logo;
+
+  const taglineEl = document.getElementById('navStoreTagline');
+  if (taglineEl) taglineEl.textContent = tagline;
+
+  document.title = `${name} – Smart Business Management System`;
+
+  // Live preview box
+  const pFormLogo = document.getElementById('previewFormLogo');
+  if (pFormLogo) pFormLogo.textContent = logo;
+
+  const pHeaderIcon = document.getElementById('previewHeaderIcon');
+  if (pHeaderIcon) pHeaderIcon.textContent = logo;
+
+  const pHeaderName = document.getElementById('previewHeaderName');
+  if (pHeaderName) pHeaderName.textContent = name;
+
+  const pHeaderTagline = document.getElementById('previewHeaderTagline');
+  if (pHeaderTagline) pHeaderTagline.textContent = tagline;
+
+  const liveBadge = document.getElementById('settingsLiveBadge');
+  if (liveBadge) {
+    liveBadge.textContent = '✏️ Nagbabago (Unsaved)';
+    liveBadge.className = 'badge badge-warning';
+  }
 }
 
 async function fetchProducts() {
@@ -1752,14 +1838,15 @@ function switchCamera() {
 
 // ==================== STORE SETTINGS & BACKUP ====================
 async function saveStoreSettings(e) {
-  e.preventDefault();
+  if (e) e.preventDefault();
   const payload = {
-    name: document.getElementById('settingStoreName').value,
-    tagline: document.getElementById('settingStoreTagline').value,
-    owner: document.getElementById('settingStoreOwner').value,
-    phone: document.getElementById('settingStorePhone').value,
-    address: document.getElementById('settingStoreAddress').value,
-    receiptFooter: document.getElementById('settingReceiptFooter').value
+    name: document.getElementById('settingStoreName').value.trim() || 'Vibe Tindahan',
+    logo: document.getElementById('settingStoreLogo')?.value || '🏪',
+    tagline: document.getElementById('settingStoreTagline').value.trim(),
+    owner: document.getElementById('settingStoreOwner').value.trim(),
+    phone: document.getElementById('settingStorePhone').value.trim(),
+    address: document.getElementById('settingStoreAddress').value.trim(),
+    receiptFooter: document.getElementById('settingReceiptFooter').value.trim()
   };
 
   try {
@@ -1771,8 +1858,20 @@ async function saveStoreSettings(e) {
 
     if (!res.ok) throw new Error('Failed to update settings.');
     state.settings = await res.json();
-    document.getElementById('navStoreTagline').textContent = state.settings.tagline;
-    showToast('Nai-save ang impormasyon ng tindahan!');
+    applyStoreSettings(state.settings);
+    playChime();
+
+    if (window.confetti) {
+      window.confetti({ particleCount: 30, spread: 50, origin: { y: 0.6 } });
+    }
+
+    const liveBadge = document.getElementById('settingsLiveBadge');
+    if (liveBadge) {
+      liveBadge.textContent = '✅ Aktibo at Nai-save';
+      liveBadge.className = 'badge badge-success';
+    }
+
+    showToast(`Matagumpay na na-activate ang "${state.settings.name}"!`, 'success');
   } catch (err) {
     showToast(err.message, 'danger');
   }
