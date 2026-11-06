@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Vibe Tindahan – Smart Business Management System</title>
   <link rel="stylesheet" href="style.css">
   <script src="vendor/chart.js"></script>
@@ -131,6 +131,10 @@
 
         <!-- Right: Real-time Cart & Cashier Drawer -->
         <div class="card cart-panel">
+          <div class="mobile-drawer-header">
+            <div class="drawer-drag-pill"></div>
+            <button type="button" class="drawer-close-btn" onclick="closeMobileCartDrawer()" aria-label="Isara ang Basket">&times;</button>
+          </div>
           <div class="cart-header">
             <div class="cart-title">
               🛒 Resibo ng Mamimili
@@ -243,6 +247,20 @@
           </div>
         </div>
       </div>
+
+      <!-- Mobile Floating Cart Bar (Sticky pill on mobile/tablet) -->
+      <div id="mobileCartFloatingBar" class="mobile-cart-floating-bar" onclick="openMobileCartDrawer()">
+        <div class="mobile-cart-bar-info">
+          <span class="mobile-cart-badge" id="mobileCartBadge">0 items</span>
+          <span class="mobile-cart-total-price" id="mobileCartBarTotal">₱0.00</span>
+        </div>
+        <button type="button" class="btn btn-accent btn-sm mobile-cart-cta">
+          Tingnan ang Basket / Bayad ➔
+        </button>
+      </div>
+
+      <!-- Backdrop for mobile cart drawer -->
+      <div id="cartBackdrop" class="cart-backdrop" onclick="closeMobileCartDrawer()"></div>
     </section>
 
     <!-- ==================== TAB 2: INVENTORY & LOW STOCK ==================== -->
@@ -395,7 +413,7 @@
       </div>
 
       <!-- Charts Row -->
-      <div style="display:grid; grid-template-columns: 2fr 1fr; gap:1rem; margin-bottom:1.5rem;">
+      <div class="responsive-grid-2-1">
         <div class="card">
           <h3 style="font-size:1rem; font-weight:800; margin-bottom:1rem;">📈 Trend ng Benta at Tubo</h3>
           <div style="height:250px;">
@@ -411,7 +429,7 @@
       </div>
 
       <!-- Expense Manager & Sales Ledger -->
-      <div style="display:grid; grid-template-columns: 1fr 2fr; gap:1rem;">
+      <div class="responsive-grid-1-2">
         <!-- Daily Expense Logger -->
         <div class="card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
@@ -483,7 +501,7 @@
       </div>
 
       <!-- Highlights & Action Items -->
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem; margin-bottom:1.5rem;">
+      <div class="responsive-grid-1-1">
         <div class="card">
           <h3 style="font-size:1rem; font-weight:800; margin-bottom:0.75rem; color:#0369a1;">
             ✨ Mga Magandang Balita & Performance
@@ -504,7 +522,7 @@
       </div>
 
       <!-- Smart Restock Predictions & Dagdag-Benta Combos -->
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem; margin-bottom:1.5rem;">
+      <div class="responsive-grid-1-1">
         <!-- Restock Predictions -->
         <div class="card">
           <h3 style="font-size:1rem; font-weight:800; margin-bottom:0.75rem;">
@@ -565,7 +583,7 @@
 
     <!-- ==================== TAB 6: SETTINGS & BACKUP ==================== -->
     <section id="tab-settings" class="tab-panel">
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
+      <div class="responsive-grid-1-1">
         <!-- Store Information -->
         <div class="card">
           <h3 style="font-size:1.1rem; font-weight:800; margin-bottom:1rem;">🏪 Impormasyon ng Tindahan</h3>
@@ -1012,3 +1030,4 @@
   <script src="app.js"></script>
 </body>
 </html>
+

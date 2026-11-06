@@ -460,6 +460,10 @@ function renderCart() {
     document.getElementById('cartTotalAmount').textContent = `${sym}0.00`;
     document.getElementById('cartDiscountRow').style.display = 'none';
     calculateSukli();
+
+    const mobileBar = document.getElementById('mobileCartFloatingBar');
+    if (mobileBar) mobileBar.style.display = 'none';
+    closeMobileCartDrawer();
     return;
   }
 
@@ -516,6 +520,31 @@ function renderCart() {
   document.getElementById('cartTotalAmount').textContent = `${sym}${finalTotal.toFixed(2)}`;
 
   calculateSukli();
+
+  // Update Mobile Floating Cart Bar
+  const mobileBar = document.getElementById('mobileCartFloatingBar');
+  const mobileBadge = document.getElementById('mobileCartBadge');
+  const mobileTotal = document.getElementById('mobileCartBarTotal');
+  if (mobileBar && mobileBadge && mobileTotal) {
+    mobileBadge.textContent = `${totalItemsCount} ${totalItemsCount === 1 ? 'item' : 'items'}`;
+    mobileTotal.textContent = `${sym}${finalTotal.toFixed(2)}`;
+    // Only display on mobile/tablet viewports via CSS
+    mobileBar.style.display = '';
+  }
+}
+
+function openMobileCartDrawer() {
+  const panel = document.querySelector('.cart-panel');
+  const backdrop = document.getElementById('cartBackdrop');
+  if (panel) panel.classList.add('mobile-drawer-open');
+  if (backdrop) backdrop.classList.add('active');
+}
+
+function closeMobileCartDrawer() {
+  const panel = document.querySelector('.cart-panel');
+  const backdrop = document.getElementById('cartBackdrop');
+  if (panel) panel.classList.remove('mobile-drawer-open');
+  if (backdrop) backdrop.classList.remove('active');
 }
 
 function selectPaymentMethod(method) {
@@ -1816,9 +1845,11 @@ window.addEventListener('keydown', (e) => {
     processCheckout();
   } else if (e.key === 'Escape') {
     document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
+    closeMobileCartDrawer();
     stopCameraScanner();
   }
 });
 
 // Start the app on load
 document.addEventListener('DOMContentLoaded', initApp);
+
