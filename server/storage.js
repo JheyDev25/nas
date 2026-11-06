@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
+const os = require('os');
 const {
   defaultStoreSettings,
   defaultProducts,
@@ -10,8 +11,13 @@ const {
   defaultExpenses
 } = require('./seed-data');
 
-const DB_FILE = path.join(__dirname, '..', 'data', 'db.json');
-const DB_TEMP_FILE = path.join(__dirname, '..', 'data', 'db.json.tmp');
+const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+const LOCAL_DATA_DIR = path.join(__dirname, '..', 'data');
+const LOCAL_DB_FILE = path.join(LOCAL_DATA_DIR, 'db.json');
+
+const DB_DIR = isServerless ? os.tmpdir() : LOCAL_DATA_DIR;
+const DB_FILE = path.join(DB_DIR, 'db.json');
+const DB_TEMP_FILE = path.join(DB_DIR, 'db.json.tmp');
 
 class StorageManager {
   constructor() {
@@ -21,8 +27,13 @@ class StorageManager {
 
   init() {
     try {
-      if (fs.existsSync(DB_FILE)) {
-        const raw = fs.readFileSync(DB_FILE, 'utf8');
+      let sourceFile = DB_FILE;
+      if (isServerless && !fs.existsSync(DB_FILE) && fs.existsSync(LOCAL_DB_FILE)) {
+        sourceFile = LOCAL_DB_FILE;
+      }
+
+      if (fs.existsSync(sourceFile)) {
+        const raw = fs.readFileSync(sourceFile, 'utf8');
         this.data = JSON.parse(raw);
         // Ensure all collections exist
         this.data.settings = this.data.settings || { ...defaultStoreSettings };
@@ -42,12 +53,15 @@ class StorageManager {
 
   save() {
     try {
+      if (!fs.existsSync(DB_DIR)) {
+        fs.mkdirSync(DB_DIR, { recursive: true });
+      }
       const serialized = JSON.stringify(this.data, null, 2);
       fs.writeFileSync(DB_TEMP_FILE, serialized, 'utf8');
       fs.renameSync(DB_TEMP_FILE, DB_FILE);
     } catch (err) {
-      console.error('Failed to save db.json:', err.message);
-      throw err;
+      console.warn('Storage save warning (filesystem might be read-only):', err.message);
+      // In serverless environments, in-memory data remains updated for the invocation
     }
   }
 
