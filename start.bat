@@ -12,3 +12,4 @@ if exist "C:\Program Files\nodejs\node.exe" (
     node server/server.js
 )
 pause
+

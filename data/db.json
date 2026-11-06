@@ -1,6 +1,7 @@
 {
   "settings": {
-    "name": "Vibe Tindahan",
+    "name": "f Tindahan",
+    "logo": "🏪",
     "tagline": "Ang Maaasahang Tindahan ng Barangay",
     "owner": "Ate Baby & Kuya Jun",
     "address": "123 Mabini St., Brgy. San Antonio, Pasig City",
@@ -10,9 +11,30 @@
     "receiptHeader": "VIBE TINDAHAN\n123 Mabini St., Brgy. San Antonio\nTel: 0917-888-8423",
     "receiptFooter": "Maraming Salamat sa inyong Pagtangkilik!\nBalik po kayo sa Vibe Tindahan!\n(Official Non-VAT Customer Receipt)",
     "taxRate": 0,
-    "lowStockGlobalThreshold": 5
+    "lowStockGlobalThreshold": 5,
+    "language": "fil"
   },
   "products": [
+    {
+      "id": "prod-359a89a4",
+      "barcode": "4800011199999",
+      "name": "Nescafe 3-in-1 Original",
+      "category": "Beverages",
+      "unit": "sachet (28g)",
+      "costPrice": 9,
+      "sellingPrice": 12,
+      "stock": 40,
+      "minStock": 10,
+      "description": "",
+      "createdAt": "2026-11-06T08:10:23.084Z",
+      "lastStockAdjustment": {
+        "date": "2026-11-06T08:10:23.090Z",
+        "qtyChange": 12,
+        "prevStock": 30,
+        "newStock": 42,
+        "reason": "Restock supplier"
+      }
+    },
     {
       "id": "prod-001",
       "barcode": "4807770270016",
@@ -21,7 +43,7 @@
       "unit": "pack (80g)",
       "costPrice": 13.5,
       "sellingPrice": 17,
-      "stock": 24,
+      "stock": 22,
       "minStock": 10,
       "description": "Classic Pinoy favorite calamansi flavored noodles"
     },
@@ -356,7 +378,7 @@
       "phone": "0920-555-7890",
       "address": "Block 2, Lot 5, Mabini Extension",
       "creditLimit": 1000,
-      "currentBalance": 850,
+      "currentBalance": 834,
       "status": "Due Soon",
       "notes": "Tricycle driver; promises payment this Saturday afternoon.",
       "createdAt": "2026-10-20T10:15:00.000Z"
@@ -444,32 +466,115 @@
       "date": "2026-10-30T16:00:00.000Z"
     },
     {
-      "id": "utang-575b872a",
+      "id": "utang-782090c6",
       "customerId": "cust-001",
       "type": "CHARGE",
       "amount": 32,
       "balanceAfter": 452,
-      "description": "Utang / Credit Purchase (VT-20261106-140923)",
+      "description": "Utang / Credit Purchase (VT-20261106-160951)",
       "itemsSummary": "2x Great Taste White Coffee Twin Pack",
-      "date": "2026-11-06T06:09:23.750Z",
-      "receiptNumber": "VT-20261106-140923"
+      "date": "2026-11-06T08:09:51.486Z",
+      "receiptNumber": "VT-20261106-160951"
     },
     {
-      "id": "utang-1f7fdb5c",
+      "id": "utang-0874ba30",
       "customerId": "cust-001",
       "type": "PAYMENT",
       "amount": 20,
       "balanceAfter": 432,
       "description": "Hulog / Bayad Utang - Hulog mula sa kita sa tricycle",
       "paymentMethod": "Cash",
-      "date": "2026-11-06T06:09:23.751Z"
+      "date": "2026-11-06T08:09:51.488Z"
+    },
+    {
+      "id": "utang-8210587b",
+      "customerId": "cust-002",
+      "type": "CHARGE",
+      "amount": 34,
+      "balanceAfter": 884,
+      "description": "Utang / Credit Purchase (VT-20261106-161023)",
+      "itemsSummary": "2x Lucky Me! Instant Pancit Canton Kalamansi",
+      "date": "2026-11-06T08:10:23.101Z",
+      "receiptNumber": "VT-20261106-161023"
+    },
+    {
+      "id": "utang-7aa9ff7d",
+      "customerId": "cust-002",
+      "type": "PAYMENT",
+      "amount": 50,
+      "balanceAfter": 834,
+      "description": "Hulog / Bayad Utang - Bayad sa boundary",
+      "paymentMethod": "Cash",
+      "date": "2026-11-06T08:10:23.107Z"
     }
   ],
   "sales": [
     {
-      "id": "sale-f2a6f960",
-      "receiptNumber": "VT-20261106-140923",
-      "timestamp": "2026-11-06T06:09:23.750Z",
+      "id": "sale-e9bbd186",
+      "receiptNumber": "VT-20261106-161023",
+      "timestamp": "2026-11-06T08:10:23.101Z",
+      "items": [
+        {
+          "productId": "prod-001",
+          "name": "Lucky Me! Instant Pancit Canton Kalamansi",
+          "barcode": "4807770270016",
+          "unit": "pack (80g)",
+          "qty": 2,
+          "unitPrice": 17,
+          "costPrice": 13.5,
+          "total": 34,
+          "grossProfit": 7
+        }
+      ],
+      "subtotal": 34,
+      "discount": 0,
+      "totalAmount": 34,
+      "totalCost": 27,
+      "grossProfit": 7,
+      "paymentMethod": "Utang",
+      "cashTendered": 34,
+      "change": 0,
+      "customerId": "cust-002",
+      "customerName": "Mang Tomas Santos",
+      "cashier": "Kuya Jun",
+      "referenceNumber": null,
+      "note": ""
+    },
+    {
+      "id": "sale-afca87b4",
+      "receiptNumber": "VT-20261106-161023",
+      "timestamp": "2026-11-06T08:10:23.097Z",
+      "items": [
+        {
+          "productId": "prod-359a89a4",
+          "name": "Nescafe 3-in-1 Original",
+          "barcode": "4800011199999",
+          "unit": "sachet (28g)",
+          "qty": 2,
+          "unitPrice": 12,
+          "costPrice": 9,
+          "total": 24,
+          "grossProfit": 6
+        }
+      ],
+      "subtotal": 24,
+      "discount": 0,
+      "totalAmount": 24,
+      "totalCost": 18,
+      "grossProfit": 6,
+      "paymentMethod": "Cash",
+      "cashTendered": 50,
+      "change": 26,
+      "customerId": null,
+      "customerName": null,
+      "cashier": "Ate Baby",
+      "referenceNumber": null,
+      "note": ""
+    },
+    {
+      "id": "sale-a46ad61f",
+      "receiptNumber": "VT-20261106-160951",
+      "timestamp": "2026-11-06T08:09:51.486Z",
       "items": [
         {
           "productId": "prod-008",
@@ -498,9 +603,9 @@
       "note": ""
     },
     {
-      "id": "sale-62da4f43",
-      "receiptNumber": "VT-20261106-140923",
-      "timestamp": "2026-11-06T06:09:23.742Z",
+      "id": "sale-bb1ed298",
+      "receiptNumber": "VT-20261106-160951",
+      "timestamp": "2026-11-06T08:09:51.478Z",
       "items": [
         {
           "productId": "prod-020",
@@ -722,8 +827,16 @@
   ],
   "expenses": [
     {
-      "id": "exp-60c4d4ee",
-      "date": "2026-11-06T06:09:23.753Z",
+      "id": "exp-9c02d8d9",
+      "date": "2026-11-06T08:10:23.117Z",
+      "category": "Store Supplies",
+      "description": "1 balot ng sando plastic bags",
+      "amount": 40,
+      "paymentMethod": "Cash"
+    },
+    {
+      "id": "exp-f204c7b2",
+      "date": "2026-11-06T08:09:51.491Z",
       "category": "Utilities",
       "description": "Dagdag kuryente tindahan",
       "amount": 25,
@@ -754,5 +867,5 @@
       "paymentMethod": "Cash"
     }
   ],
-  "updatedAt": "2026-11-06T06:09:23.757Z"
+  "updatedAt": "2026-11-06T08:09:51.495Z"
 }

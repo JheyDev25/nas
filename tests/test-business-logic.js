@@ -125,5 +125,31 @@ storage.restoreFromBackup(backup);
 const restoredProducts = storage.getProducts();
 assert.strictEqual(restoredProducts.length, backup.products.length, 'Restored product count must match backup');
 
-console.log('✅ ALL 7 TEST SUITES PASSED FLAWLESSLY!');
+// TEST 8: Bilingual Internationalization (Filipino & English)
+console.log('Running Test 8: Bilingual Engine & Translations...');
+const { translations, t } = require('../public/i18n.js');
+assert(translations.fil && translations.en, 'Both Filipino and English translation maps must exist');
+assert.strictEqual(t('tab_pos', 'fil'), '🛒 POS Cashier');
+assert.strictEqual(t('tab_pos', 'en'), '🛒 POS Cashier');
+assert.strictEqual(t('tab_inventory', 'fil'), '📦 Imbentaryo & Stock');
+assert.strictEqual(t('tab_inventory', 'en'), '📦 Inventory & Stock');
+assert.strictEqual(t('tab_utang', 'fil'), '📒 Kuwaderno ng Utang');
+assert.strictEqual(t('tab_utang', 'en'), '📒 Customer Debt Ledger');
+assert.strictEqual(t('checkout_btn', 'fil'), '✅ Bayad at Resibo (F9)');
+assert.strictEqual(t('checkout_btn', 'en'), '✅ Complete & Print Receipt (F9)');
+
+// Bilingual AI Verification
+const briefingFil = aiEngine.getDailyExecutiveBriefing('fil');
+const briefingEn = aiEngine.getDailyExecutiveBriefing('en');
+assert(briefingFil.statusGreeting, 'Filipino AI briefing must have status greeting');
+assert(briefingEn.statusGreeting, 'English AI briefing must have status greeting');
+assert.notStrictEqual(briefingFil.statusGreeting, briefingEn.statusGreeting, 'Filipino and English status greetings should differ');
+
+const aiDebtFil = aiEngine.askAI('utang', 'fil');
+const aiDebtEn = aiEngine.askAI('debt', 'en');
+assert(aiDebtFil.answer.includes('pautang') || aiDebtFil.answer.includes('utang'), 'Filipino AI answer should mention utang/pautang');
+assert(aiDebtEn.answer.includes('outstanding') || aiDebtEn.answer.includes('debt'), 'English AI answer should mention debt/outstanding');
+
+console.log('✅ ALL 8 TEST SUITES PASSED FLAWLESSLY!');
 console.log('==================================================');
+

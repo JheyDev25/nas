@@ -12,7 +12,8 @@ const defaultStoreSettings = {
   receiptHeader: "VIBE TINDAHAN\n123 Mabini St., Brgy. San Antonio\nTel: 0917-888-8423",
   receiptFooter: "Maraming Salamat sa inyong Pagtangkilik!\nBalik po kayo sa Vibe Tindahan!\n(Official Non-VAT Customer Receipt)",
   taxRate: 0, // Sari-sari stores are typically non-VAT micro-enterprises
-  lowStockGlobalThreshold: 5
+  lowStockGlobalThreshold: 5,
+  language: "fil"
 };
 
 const defaultProducts = [

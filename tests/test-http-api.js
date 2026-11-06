@@ -159,21 +159,36 @@ async function runHttpTests() {
       assert(analyticsData.grossSales > 0);
       assert(analyticsData.netProfit !== undefined);
 
-      // 11. AI Endpoints
-      console.log('Test 11: AI Insights and Briefing...');
-      const briefingRes = await fetch(`${baseUrl}/api/ai/briefing`);
-      assert.strictEqual(briefingRes.status, 200);
-      const briefing = await briefingRes.json();
-      assert(briefing.healthScore > 0);
+      // 11. AI Endpoints (Bilingual: Filipino & English)
+      console.log('Test 11: AI Insights and Briefing (Bilingual)...');
+      const briefingFilRes = await fetch(`${baseUrl}/api/ai/briefing?lang=fil`);
+      assert.strictEqual(briefingFilRes.status, 200);
+      const briefingFil = await briefingFilRes.json();
+      assert(briefingFil.healthScore > 0);
 
-      const askRes = await fetch(`${baseUrl}/api/ai/ask`, {
+      const briefingEnRes = await fetch(`${baseUrl}/api/ai/briefing?lang=en`);
+      assert.strictEqual(briefingEnRes.status, 200);
+      const briefingEn = await briefingEnRes.json();
+      assert(briefingEn.healthScore > 0);
+      assert.notStrictEqual(briefingFil.statusGreeting, briefingEn.statusGreeting);
+
+      const askFilRes = await fetch(`${baseUrl}/api/ai/ask`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: 'Anong paninda ang dapat kong i-restock?' })
+        body: JSON.stringify({ question: 'Anong paninda ang dapat kong i-restock?', lang: 'fil' })
       });
-      assert.strictEqual(askRes.status, 200);
-      const askData = await askRes.json();
-      assert(askData.answer);
+      assert.strictEqual(askFilRes.status, 200);
+      const askFilData = await askFilRes.json();
+      assert(askFilData.answer);
+
+      const askEnRes = await fetch(`${baseUrl}/api/ai/ask`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: 'How much are my total sales today?', lang: 'en' })
+      });
+      assert.strictEqual(askEnRes.status, 200);
+      const askEnData = await askEnRes.json();
+      assert(askEnData.answer && (askEnData.answer.includes('Gross') || askEnData.answer.includes('Revenue')));
 
       // 12. Backup
       console.log('Test 12: Database backup...');
@@ -183,11 +198,18 @@ async function runHttpTests() {
       assert(backupJson.products && backupJson.sales);
 
       // 13. Static frontend files
-      console.log('Test 13: Static frontend files...');
+      console.log('Test 13: Static frontend files & i18n script...');
       const htmlRes = await fetch(`${baseUrl}/`);
       assert.strictEqual(htmlRes.status, 200);
       const htmlText = await htmlRes.text();
       assert(htmlText.includes('Vibe Tindahan'));
+      assert(htmlText.includes('i18n.js'));
+      assert(htmlText.includes('langBtnFil') && htmlText.includes('langBtnEn'));
+
+      const i18nRes = await fetch(`${baseUrl}/i18n.js`);
+      assert.strictEqual(i18nRes.status, 200);
+      const i18nText = await i18nRes.text();
+      assert(i18nText.includes('translations'));
 
       const cssRes = await fetch(`${baseUrl}/style.css`);
       assert.strictEqual(cssRes.status, 200);

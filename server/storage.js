@@ -637,3 +637,4 @@ class StorageManager {
 
 const storage = new StorageManager();
 module.exports = storage;
+

@@ -216,6 +216,42 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   font-weight: 800;
 }
 
+/* Language Switcher in Header */
+.lang-switch-wrapper {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius-full);
+  padding: 2px;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.lang-btn {
+  background: transparent;
+  border: none;
+  color: var(--white);
+  padding: 0.25rem 0.55rem;
+  border-radius: var(--radius-full);
+  font-size: 0.725rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  line-height: 1;
+  min-height: 28px;
+}
+
+.lang-btn.active {
+  background: var(--white);
+  color: var(--primary-dark);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.lang-btn:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.15);
+}
+
 /* ==========================================================================
    Tabs Navigation (Horizontal Scroll with safe boundaries)
    ========================================================================== */

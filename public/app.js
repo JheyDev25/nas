@@ -14,6 +14,7 @@ const state = {
   activeTab: 'pos',
   activeCategory: 'All',
   selectedPaymentMethod: 'Cash',
+  currentLang: localStorage.getItem('vibe_tindahan_lang') || 'fil',
   soundEnabled: true,
   barcodeScannerInstance: null,
   currentReceiptData: null,
@@ -22,6 +23,72 @@ const state = {
     paymentMethods: null
   }
 };
+
+// ==================== BILINGUAL LANGUAGE SWITCHER ====================
+function setLanguage(lang) {
+  if (lang !== 'fil' && lang !== 'en') lang = 'fil';
+  state.currentLang = lang;
+  localStorage.setItem('vibe_tindahan_lang', lang);
+
+  // 1. Sync Ribbon Toggle Buttons
+  const btnFil = document.getElementById('langBtnFil');
+  const btnEn = document.getElementById('langBtnEn');
+  if (btnFil && btnEn) {
+    if (lang === 'fil') {
+      btnFil.classList.add('active');
+      btnEn.classList.remove('active');
+    } else {
+      btnEn.classList.add('active');
+      btnFil.classList.remove('active');
+    }
+  }
+
+  // 2. Sync Settings Dropdown
+  const langSelect = document.getElementById('settingStoreLang');
+  if (langSelect && langSelect.value !== lang) {
+    langSelect.value = lang;
+  }
+
+  // 3. Update all [data-i18n] text
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const translated = t(key, lang);
+    if (translated) {
+      el.textContent = translated;
+    }
+  });
+
+  // 4. Update all [data-i18n-placeholder] placeholders
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    const translated = t(key, lang);
+    if (translated) {
+      el.placeholder = translated;
+    }
+  });
+
+  // 5. Update sound button
+  const soundBtn = document.getElementById('soundToggleBtn');
+  if (soundBtn) {
+    soundBtn.textContent = state.soundEnabled ? t('sound_on', lang) : t('sound_off', lang);
+  }
+
+  // 6. Dynamic re-renders of active components
+  updateNavMetrics();
+  updateLowStockAlerts();
+  renderPosCategories();
+  renderPosProducts();
+  renderCart();
+  renderInventoryTable();
+  renderUtangList();
+  renderAnalyticsCharts();
+  renderSalesLedger();
+  renderExpensesList();
+  fetchAiInsights().then(() => renderAiView());
+
+  const msg = lang === 'fil' ? 'Naka-set sa Wikang Filipino 🇵🇭' : 'Language switched to English 🇺🇸';
+  showToast(msg, 'info');
+}
 
 // Web Audio API Sound Synthesizer (No external audio files needed)
 let audioCtx = null;
@@ -82,8 +149,10 @@ function playChime() {
 function toggleSound() {
   state.soundEnabled = !state.soundEnabled;
   const btn = document.getElementById('soundToggleBtn');
-  btn.textContent = state.soundEnabled ? '🔊 Sound: ON' : '🔇 Sound: OFF';
-  showToast(state.soundEnabled ? 'Sound enabled' : 'Sound muted');
+  btn.textContent = state.soundEnabled ? t('sound_on', state.currentLang) : t('sound_off', state.currentLang);
+  showToast(state.soundEnabled 
+    ? (state.currentLang === 'en' ? 'Sound enabled' : 'Bukas ang tunog') 
+    : (state.currentLang === 'en' ? 'Sound muted' : 'Naka-mute ang tunog'));
 }
 
 // Global Hardware Barcode Scanner Listener
@@ -145,13 +214,8 @@ async function initApp() {
       fetchSales(),
       fetchAiInsights()
     ]);
-    renderPosCategories();
-    renderPosProducts();
-    renderInventoryTable();
-    renderUtangList();
-    renderAnalyticsCharts();
-    renderAiView();
-    updateNavMetrics();
+    const initialLang = localStorage.getItem('vibe_tindahan_lang') || state.settings.language || 'fil';
+    setLanguage(initialLang);
   } catch (err) {
     console.error('Initialization error:', err);
     showToast('Error loading store data. Please refresh.', 'danger');
@@ -169,7 +233,7 @@ function applyStoreSettings(settings) {
   if (!settings) return;
   const name = settings.name || 'Vibe Tindahan';
   const logo = settings.logo || '🏪';
-  const tagline = settings.tagline || 'Ang Maaasahang Tindahan ng Barangay';
+  const tagline = settings.tagline || (state.currentLang === 'en' ? 'Your Reliable Neighborhood Store' : 'Ang Maaasahang Tindahan ng Barangay');
 
   // 1. Update Header Navigation Branding
   const nameEl = document.getElementById('navStoreName');
@@ -218,6 +282,14 @@ function applyStoreSettings(settings) {
 
   const footerInput = document.getElementById('settingReceiptFooter');
   if (footerInput && document.activeElement !== footerInput) footerInput.value = settings.receiptFooter || '';
+
+  const langSelect = document.getElementById('settingStoreLang');
+  if (langSelect && settings.language) {
+    langSelect.value = settings.language;
+    if (!localStorage.getItem('vibe_tindahan_lang')) {
+      state.currentLang = settings.language;
+    }
+  }
 }
 
 function handleSettingsLiveInput() {
@@ -288,8 +360,9 @@ async function fetchSales() {
 
 async function fetchAiInsights() {
   try {
+    const lang = state.currentLang || 'fil';
     const [briefingRes, restockRes, combosRes] = await Promise.all([
-      fetch('/api/ai/briefing'),
+      fetch(`/api/ai/briefing?lang=${lang}`),
       fetch('/api/ai/restock'),
       fetch('/api/ai/combos')
     ]);
@@ -349,10 +422,15 @@ function updateNavMetrics() {
 function updateLowStockAlerts() {
   const lowStockItems = state.products.filter(p => p.stock <= (p.minStock || 5));
   const banner = document.getElementById('lowStockAlertBanner');
+  const isEn = state.currentLang === 'en';
   if (lowStockItems.length > 0) {
     banner.style.display = 'flex';
-    document.getElementById('lowStockBannerTitle').textContent = `Pansin: May ${lowStockItems.length} produkto na paubos na o ubos na!`;
-    document.getElementById('lowStockBannerSub').textContent = `Mga kritikal: ${lowStockItems.slice(0, 3).map(p => p.name).join(', ')}`;
+    document.getElementById('lowStockBannerTitle').textContent = isEn
+      ? `Attention: ${lowStockItems.length} products are low or out of stock!`
+      : `Pansin: May ${lowStockItems.length} produkto na paubos na o ubos na!`;
+    document.getElementById('lowStockBannerSub').textContent = isEn
+      ? `Critical items: ${lowStockItems.slice(0, 3).map(p => p.name).join(', ')}`
+      : `Mga kritikal: ${lowStockItems.slice(0, 3).map(p => p.name).join(', ')}`;
   } else {
     banner.style.display = 'none';
   }
@@ -362,9 +440,12 @@ function updateLowStockAlerts() {
 function renderPosCategories() {
   const categories = ['All', ...new Set(state.products.map(p => p.category))];
   const container = document.getElementById('posCategoryPills');
+  const isEn = state.currentLang === 'en';
+  const allLabel = isEn ? '🌟 All Items' : '🌟 Lahat';
+
   container.innerHTML = categories.map(cat => `
     <button class="cat-pill ${cat === state.activeCategory ? 'active' : ''}" onclick="selectPosCategory('${cat}')">
-      ${cat === 'All' ? '🌟 Lahat' : cat}
+      ${cat === 'All' ? allLabel : cat}
     </button>
   `).join('');
 
@@ -374,7 +455,7 @@ function renderPosCategories() {
   
   // Populate inventory category filter dropdown
   const invSelect = document.getElementById('inventoryCategoryFilter');
-  invSelect.innerHTML = `<option value="All">Lahat ng Kategorya</option>` +
+  invSelect.innerHTML = `<option value="All">${isEn ? 'All Categories' : 'Lahat ng Kategorya'}</option>` +
     categories.filter(c => c !== 'All').map(c => `<option value="${c}">${c}</option>`).join('');
 }
 
@@ -398,6 +479,7 @@ function clearPosFilters() {
 function renderPosProducts() {
   const search = document.getElementById('posSearchInput').value.toLowerCase().trim();
   let filtered = state.products;
+  const isEn = state.currentLang === 'en';
 
   if (state.activeCategory !== 'All') {
     filtered = filtered.filter(p => p.category.toLowerCase() === state.activeCategory.toLowerCase());
@@ -416,7 +498,7 @@ function renderPosProducts() {
     container.innerHTML = `
       <div style="grid-column:1/-1; text-align:center; padding:3rem; color:var(--gray-500);">
         <div style="font-size:2.5rem; margin-bottom:0.5rem;">🔍</div>
-        <p>Walang nahanap na paninda para sa "${search || state.activeCategory}".</p>
+        <p>${isEn ? `No products found matching "${search || state.activeCategory}".` : `Walang nahanap na paninda para sa "${search || state.activeCategory}".`}</p>
       </div>
     `;
     return;
@@ -431,7 +513,7 @@ function renderPosProducts() {
 
     if (isOutOfStock) {
       stockClass = 'stock-out';
-      stockLabel = 'UBOS NA';
+      stockLabel = isEn ? 'OUT OF STOCK' : 'UBOS NA';
     } else if (prod.stock <= (prod.minStock || 5)) {
       stockClass = 'stock-low';
       stockLabel = `⚠️ ${prod.stock} ${prod.unit || 'pcs'}`;
@@ -447,7 +529,7 @@ function renderPosProducts() {
         <div class="product-unit">${prod.category} • ${prod.unit || 'unit'}</div>
         <div class="product-price-row">
           <div class="product-price">${sym}${prod.sellingPrice.toFixed(2)}</div>
-          <button class="add-btn" title="Idagdag sa Basket" ${isOutOfStock ? 'disabled' : ''}>+</button>
+          <button class="add-btn" title="${isEn ? 'Add to Cart' : 'Idagdag sa Basket'}" ${isOutOfStock ? 'disabled' : ''}>+</button>
         </div>
       </div>
     `;
@@ -530,16 +612,18 @@ function renderCart() {
   const container = document.getElementById('cartItemsContainer');
   const countBadge = document.getElementById('cartCountBadge');
   const sym = state.settings.currencySymbol || '₱';
+  const isEn = state.currentLang === 'en';
 
   const totalItemsCount = state.cart.reduce((sum, i) => sum + i.qty, 0);
-  countBadge.textContent = `${totalItemsCount} ${totalItemsCount === 1 ? 'item' : 'items'}`;
+  const itemWord = totalItemsCount === 1 ? t('item_singular', state.currentLang) : t('item_plural', state.currentLang);
+  countBadge.textContent = `${totalItemsCount} ${itemWord}`;
 
   if (state.cart.length === 0) {
     container.innerHTML = `
       <div class="empty-cart-state">
         <div class="empty-cart-icon">🛍️</div>
-        <p>Walang laman ang basket.</p>
-        <small>Pumili ng paninda o mag-scan ng barcode para simulan ang benta.</small>
+        <p data-i18n="empty_cart_msg">${t('empty_cart_msg', state.currentLang)}</p>
+        <small data-i18n="empty_cart_sub">${t('empty_cart_sub', state.currentLang)}</small>
       </div>
     `;
     document.getElementById('cartSubtotal').textContent = `${sym}0.00`;
@@ -567,7 +651,7 @@ function renderCart() {
       <div class="cart-item-total">
         ${sym}${(item.unitPrice * item.qty).toFixed(2)}
       </div>
-      <button class="cart-item-remove" onclick="removeFromCart('${item.productId}')" title="Tanggalin">✕</button>
+      <button class="cart-item-remove" onclick="removeFromCart('${item.productId}')" title="${isEn ? 'Remove' : 'Tanggalin'}">✕</button>
     </div>
   `).join('');
 
@@ -612,7 +696,7 @@ function renderCart() {
   const mobileBadge = document.getElementById('mobileCartBadge');
   const mobileTotal = document.getElementById('mobileCartBarTotal');
   if (mobileBar && mobileBadge && mobileTotal) {
-    mobileBadge.textContent = `${totalItemsCount} ${totalItemsCount === 1 ? 'item' : 'items'}`;
+    mobileBadge.textContent = `${totalItemsCount} ${itemWord}`;
     mobileTotal.textContent = `${sym}${finalTotal.toFixed(2)}`;
     // Only display on mobile/tablet viewports via CSS
     mobileBar.style.display = '';
@@ -667,6 +751,7 @@ function calculateCurrentDiscount(subtotal) {
 
 function calculateSukli() {
   const sym = state.settings.currencySymbol || '₱';
+  const isEn = state.currentLang === 'en';
   const subtotal = state.cart.reduce((sum, i) => sum + (i.unitPrice * i.qty), 0);
   const discount = calculateCurrentDiscount(subtotal);
   const total = Math.max(0, subtotal - discount);
@@ -676,7 +761,8 @@ function calculateSukli() {
 
   document.getElementById('sukliAmountDisplay').textContent = `${sym}${sukli.toFixed(2)}`;
   if (tendered > 0 && tendered < total) {
-    document.getElementById('sukliAmountDisplay').textContent = `Kulang ng ${sym}${(total - tendered).toFixed(2)}`;
+    const diff = (total - tendered).toFixed(2);
+    document.getElementById('sukliAmountDisplay').textContent = isEn ? `Short by ${sym}${diff}` : `Kulang ng ${sym}${diff}`;
     document.getElementById('sukliAmountDisplay').style.color = 'var(--danger)';
   } else {
     document.getElementById('sukliAmountDisplay').style.color = '#047857';
@@ -686,9 +772,13 @@ function calculateSukli() {
 function populateUtangCustomerDropdown() {
   const select = document.getElementById('utangCustomerSelect');
   const sym = state.settings.currencySymbol || '₱';
-  select.innerHTML = '<option value="">-- Piliin ang Pangalan ng Suki --</option>' +
+  const isEn = state.currentLang === 'en';
+  const defaultLabel = isEn ? '-- Select Customer --' : '-- Piliin ang Pangalan ng Suki --';
+  const debtLabel = isEn ? 'Debt' : 'Utang';
+  
+  select.innerHTML = `<option value="">${defaultLabel}</option>` +
     state.customers.map(c => `
-      <option value="${c.id}">${c.name} (Utang: ${sym}${c.currentBalance.toFixed(2)} / Limit: ${sym}${c.creditLimit})</option>
+      <option value="${c.id}">${c.name} (${debtLabel}: ${sym}${c.currentBalance.toFixed(2)} / Limit: ${sym}${c.creditLimit})</option>
     `).join('');
 }
 
@@ -706,14 +796,19 @@ function checkSelectedCustomerUtang() {
   const subtotal = state.cart.reduce((sum, i) => sum + (i.unitPrice * i.qty), 0);
   const discount = calculateCurrentDiscount(subtotal);
   const total = Math.max(0, subtotal - discount);
+  const isEn = state.currentLang === 'en';
 
   const projectedBalance = cust.currentBalance + total;
   if (projectedBalance > cust.creditLimit) {
     alertEl.style.display = 'block';
-    alertEl.textContent = `⚠️ BABALA: Lalampas sa Credit Limit (₱${cust.creditLimit})! Bagong Balanse: ₱${projectedBalance.toFixed(2)}`;
+    alertEl.textContent = isEn
+      ? `⚠️ WARNING: Customer will exceed Credit Limit (₱${cust.creditLimit})! Projected Balance: ₱${projectedBalance.toFixed(2)}`
+      : `⚠️ BABALA: Lalampas sa Credit Limit (₱${cust.creditLimit})! Bagong Balanse: ₱${projectedBalance.toFixed(2)}`;
   } else if (projectedBalance >= cust.creditLimit * 0.85) {
     alertEl.style.display = 'block';
-    alertEl.textContent = `⚠️ Paalala: Malapit na sa limit (₱${projectedBalance.toFixed(2)} / ₱${cust.creditLimit}).`;
+    alertEl.textContent = isEn
+      ? `⚠️ Notice: Approaching credit limit (₱${projectedBalance.toFixed(2)} / ₱${cust.creditLimit}).`
+      : `⚠️ Paalala: Malapit na sa limit (₱${projectedBalance.toFixed(2)} / ₱${cust.creditLimit}).`;
   } else {
     alertEl.style.display = 'none';
   }
@@ -722,7 +817,7 @@ function checkSelectedCustomerUtang() {
 // POS Checkout
 async function processCheckout() {
   if (state.cart.length === 0) {
-    showToast('Walang laman ang basket!', 'warning');
+    showToast(state.currentLang === 'en' ? 'Cart is empty!' : 'Walang laman ang basket!', 'warning');
     return;
   }
 
@@ -738,7 +833,7 @@ async function processCheckout() {
   if (method === 'Cash') {
     tendered = Number(document.getElementById('cashTenderedInput').value);
     if (!tendered || tendered < total) {
-      showToast(`Kulang ang ibinayad na cash! Kailangan: ₱${total.toFixed(2)}`, 'warning');
+      showToast(state.currentLang === 'en' ? `Insufficient cash! Total: ₱${total.toFixed(2)}` : `Kulang ang ibinayad na cash! Kailangan: ₱${total.toFixed(2)}`, 'warning');
       return;
     }
   } else if (method === 'GCash') {
@@ -746,7 +841,7 @@ async function processCheckout() {
   } else if (method === 'Utang') {
     customerId = document.getElementById('utangCustomerSelect').value;
     if (!customerId) {
-      showToast('Pumili muna ng suki na ililista sa utang!', 'warning');
+      showToast(state.currentLang === 'en' ? 'Please select a customer for store credit!' : 'Pumili muna ng suki na ililista sa utang!', 'warning');
       return;
     }
   }
@@ -785,7 +880,7 @@ async function processCheckout() {
       window.confetti({ particleCount: 40, spread: 60, origin: { y: 0.7 } });
     }
 
-    showToast(`Benta Tagumpay! Resibo: ${sale.receiptNumber}`);
+    showToast(state.currentLang === 'en' ? `Sale Complete! Receipt: ${sale.receiptNumber}` : `Benta Tagumpay! Resibo: ${sale.receiptNumber}`);
 
     // Update state & re-fetch
     await Promise.all([
@@ -822,16 +917,17 @@ function showThermalReceipt(sale) {
   state.currentReceiptData = sale;
   const sym = state.settings.currencySymbol || '₱';
   const container = document.getElementById('thermalReceiptContent');
+  const isEn = state.currentLang === 'en';
 
   const dateObj = new Date(sale.timestamp);
-  const formattedDate = dateObj.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' });
+  const formattedDate = dateObj.toLocaleDateString(isEn ? 'en-US' : 'en-PH', { month: 'short', day: 'numeric', year: 'numeric' });
   const formattedTime = dateObj.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' });
 
   let paymentDetailsHtml = '';
   if (sale.paymentMethod === 'Cash') {
     paymentDetailsHtml = `
-      <tr><td>Cash Na Bayad:</td><td class="receipt-right">${sym}${Number(sale.cashTendered).toFixed(2)}</td></tr>
-      <tr><td>Sukli (Change):</td><td class="receipt-right"><strong>${sym}${Number(sale.change).toFixed(2)}</strong></td></tr>
+      <tr><td>${isEn ? 'Cash Tendered:' : 'Cash Na Bayad:'}</td><td class="receipt-right">${sym}${Number(sale.cashTendered).toFixed(2)}</td></tr>
+      <tr><td>${isEn ? 'Change:' : 'Sukli (Change):'}</td><td class="receipt-right"><strong>${sym}${Number(sale.change).toFixed(2)}</strong></td></tr>
     `;
   } else if (sale.paymentMethod === 'GCash') {
     paymentDetailsHtml = `
@@ -841,9 +937,9 @@ function showThermalReceipt(sale) {
   } else if (sale.paymentMethod === 'Utang') {
     const cust = state.customers.find(c => c.id === sale.customerId);
     paymentDetailsHtml = `
-      <tr><td>Payment:</td><td class="receipt-right"><strong>UTANG (Charge)</strong></td></tr>
-      <tr><td>Suki:</td><td class="receipt-right">${sale.customerName || 'Suki'}</td></tr>
-      <tr><td>Bagong Balanse:</td><td class="receipt-right" style="color:#b91c1c;"><strong>${sym}${cust ? cust.currentBalance.toFixed(2) : ''}</strong></td></tr>
+      <tr><td>Payment:</td><td class="receipt-right"><strong>${isEn ? 'CREDIT (Utang)' : 'UTANG (Charge)'}</strong></td></tr>
+      <tr><td>${isEn ? 'Customer:' : 'Suki:'}</td><td class="receipt-right">${sale.customerName || 'Suki'}</td></tr>
+      <tr><td>${isEn ? 'New Balance:' : 'Bagong Balanse:'}</td><td class="receipt-right" style="color:#b91c1c;"><strong>${sym}${cust ? cust.currentBalance.toFixed(2) : ''}</strong></td></tr>
     `;
   }
 
@@ -858,9 +954,9 @@ function showThermalReceipt(sale) {
     <div class="receipt-divider"></div>
 
     <table class="receipt-table">
-      <tr><td>Resibo #:</td><td class="receipt-right"><strong>${sale.receiptNumber}</strong></td></tr>
-      <tr><td>Petsa:</td><td class="receipt-right">${formattedDate} ${formattedTime}</td></tr>
-      <tr><td>Tindero:</td><td class="receipt-right">${sale.cashier || 'Bantay'}</td></tr>
+      <tr><td>${isEn ? 'Receipt #:' : 'Resibo #:'}</td><td class="receipt-right"><strong>${sale.receiptNumber}</strong></td></tr>
+      <tr><td>${isEn ? 'Date:' : 'Petsa:'}</td><td class="receipt-right">${formattedDate} ${formattedTime}</td></tr>
+      <tr><td>${isEn ? 'Cashier:' : 'Tindero:'}</td><td class="receipt-right">${sale.cashier || 'Bantay'}</td></tr>
     </table>
 
     <div class="receipt-divider"></div>
@@ -870,8 +966,8 @@ function showThermalReceipt(sale) {
         <tr>
           <th style="text-align:left;">Item</th>
           <th style="text-align:center;">Qty</th>
-          <th style="text-align:right;">Presyo</th>
-          <th style="text-align:right;">Kabuuan</th>
+          <th style="text-align:right;">${isEn ? 'Price' : 'Presyo'}</th>
+          <th style="text-align:right;">${isEn ? 'Total' : 'Kabuuan'}</th>
         </tr>
       </thead>
       <tbody>
@@ -890,9 +986,9 @@ function showThermalReceipt(sale) {
 
     <table class="receipt-table">
       <tr><td>Subtotal:</td><td class="receipt-right">${sym}${sale.subtotal.toFixed(2)}</td></tr>
-      ${sale.discount > 0 ? `<tr><td>Diskwento:</td><td class="receipt-right">-${sym}${sale.discount.toFixed(2)}</td></tr>` : ''}
+      ${sale.discount > 0 ? `<tr><td>${isEn ? 'Discount:' : 'Diskwento:'}</td><td class="receipt-right">-${sym}${sale.discount.toFixed(2)}</td></tr>` : ''}
       <tr class="receipt-total-bold">
-        <td>KABUUAN:</td>
+        <td>${isEn ? 'TOTAL DUE:' : 'KABUUAN:'}</td>
         <td class="receipt-right">${sym}${sale.totalAmount.toFixed(2)}</td>
       </tr>
       ${paymentDetailsHtml}
@@ -904,7 +1000,7 @@ function showThermalReceipt(sale) {
     <div style="text-align:center; font-size:10px; font-family:monospace;">* ${sale.receiptNumber} *</div>
 
     <div class="receipt-header-center" style="margin-top:0.75rem; font-size:10px;">
-      <div>${(state.settings.receiptFooter || 'Maraming Salamat po sa Pagtangkilik!\nBalik po kayo!').replace(/\n/g, '<br>')}</div>
+      <div>${(state.settings.receiptFooter || (isEn ? 'Thank you for shopping!\nPlease come again!' : 'Maraming Salamat po sa Pagtangkilik!\nBalik po kayo!')).replace(/\n/g, '<br>')}</div>
     </div>
   `;
 
@@ -941,6 +1037,7 @@ function renderInventoryTable() {
   const search = document.getElementById('inventorySearch').value.toLowerCase().trim();
   const cat = document.getElementById('inventoryCategoryFilter').value;
   const sym = state.settings.currencySymbol || '₱';
+  const isEn = state.currentLang === 'en';
 
   let list = state.products;
 
@@ -965,7 +1062,7 @@ function renderInventoryTable() {
     tbody.innerHTML = `
       <tr>
         <td colspan="10" style="text-align:center; padding:2rem; color:var(--gray-500);">
-          Walang nahanap na produkto.
+          ${isEn ? 'No products found.' : 'Walang nahanap na produkto.'}
         </td>
       </tr>
     `;
@@ -976,9 +1073,9 @@ function renderInventoryTable() {
     const profit = p.sellingPrice - p.costPrice;
     const marginPct = p.sellingPrice > 0 ? ((profit / p.sellingPrice) * 100).toFixed(0) : 0;
 
-    let badge = '<span class="badge badge-success">In Stock</span>';
-    if (p.stock <= 0) badge = '<span class="badge badge-danger">Ubos Na</span>';
-    else if (p.stock <= (p.minStock || 5)) badge = `<span class="badge badge-warning">Paubos (${p.stock})</span>`;
+    let badge = `<span class="badge badge-success">${isEn ? 'In Stock' : 'In Stock'}</span>`;
+    if (p.stock <= 0) badge = `<span class="badge badge-danger">${isEn ? 'Out of Stock' : 'Ubos Na'}</span>`;
+    else if (p.stock <= (p.minStock || 5)) badge = `<span class="badge badge-warning">${isEn ? 'Low Stock' : 'Paubos'} (${p.stock})</span>`;
 
     return `
       <tr>
@@ -996,13 +1093,13 @@ function renderInventoryTable() {
         <td>${badge}</td>
         <td>
           <div style="display:flex; gap:0.25rem;">
-            <button class="btn btn-secondary btn-sm" onclick="openRestockModal('${p.id}')" title="Magdagdag ng Stock">
+            <button class="btn btn-secondary btn-sm" onclick="openRestockModal('${p.id}')" title="${isEn ? 'Add Stock' : 'Magdagdag ng Stock'}">
               ➕ Restock
             </button>
-            <button class="btn btn-secondary btn-sm" onclick="openEditProductModal('${p.id}')" title="I-edit">
+            <button class="btn btn-secondary btn-sm" onclick="openEditProductModal('${p.id}')" title="${isEn ? 'Edit' : 'I-edit'}">
               ✏️
             </button>
-            <button class="btn btn-secondary btn-sm" style="color:var(--danger);" onclick="deleteProduct('${p.id}')" title="Burahin">
+            <button class="btn btn-secondary btn-sm" style="color:var(--danger);" onclick="deleteProduct('${p.id}')" title="${isEn ? 'Delete' : 'Burahin'}">
               🗑️
             </button>
           </div>
@@ -1210,6 +1307,7 @@ function renderUtangList() {
   const search = document.getElementById('utangCustomerSearch').value.toLowerCase().trim();
   const status = document.getElementById('utangStatusFilter').value;
   const sym = state.settings.currencySymbol || '₱';
+  const isEn = state.currentLang === 'en';
 
   let list = state.customers;
 
@@ -1239,7 +1337,7 @@ function renderUtangList() {
     tbody.innerHTML = `
       <tr>
         <td colspan="7" style="text-align:center; padding:2rem; color:var(--gray-500);">
-          Walang nahanap na suki.
+          ${isEn ? 'No registered customers found.' : 'Walang nahanap na suki.'}
         </td>
       </tr>
     `;
@@ -1247,19 +1345,22 @@ function renderUtangList() {
   }
 
   tbody.innerHTML = list.map(c => {
-    let badge = '<span class="badge badge-success">Good Payer</span>';
+    let badge = `<span class="badge badge-success">${isEn ? 'Good Payer' : 'Mabait Magbayad'}</span>`;
     if (c.status === 'Warning' || c.currentBalance >= c.creditLimit) {
-      badge = '<span class="badge badge-danger">Warning / Limit</span>';
+      badge = `<span class="badge badge-danger">${isEn ? 'Warning / Limit' : 'Warning / Limit'}</span>`;
     } else if (c.status === 'Due Soon' || c.currentBalance >= c.creditLimit * 0.75) {
-      badge = '<span class="badge badge-warning">Due Soon</span>';
+      badge = `<span class="badge badge-warning">${isEn ? 'Due Soon' : 'Due Soon'}</span>`;
     }
+
+    const payBtnText = isEn ? '💵 Payment' : '💵 Hulog / Bayad';
+    const ledgerBtnText = isEn ? '📖 Ledger' : '📖 Kuwaderno';
 
     return `
       <tr>
         <td><strong>${c.name}</strong></td>
         <td>
-          <div>${c.phone || 'Walang CP'}</div>
-          <small style="color:var(--gray-500);">${c.address || 'Walang address'}</small>
+          <div>${c.phone || (isEn ? 'No Phone' : 'Walang CP')}</div>
+          <small style="color:var(--gray-500);">${c.address || (isEn ? 'No address' : 'Walang address')}</small>
         </td>
         <td>${sym}${c.creditLimit.toFixed(2)}</td>
         <td style="font-size:1.05rem;">
@@ -1272,12 +1373,12 @@ function renderUtangList() {
         <td>
           <div style="display:flex; gap:0.25rem; flex-wrap:wrap;">
             <button class="btn btn-accent btn-sm" onclick="openUtangPayModal('${c.id}')">
-              💵 Hulog / Bayad
+              ${payBtnText}
             </button>
-            <button class="btn btn-secondary btn-sm" onclick="openCustomerLedgerModal('${c.id}')" title="Tingnan ang talaan">
-              📖 Kuwaderno
+            <button class="btn btn-secondary btn-sm" onclick="openCustomerLedgerModal('${c.id}')" title="${isEn ? 'View customer credit ledger' : 'Tingnan ang talaan'}">
+              ${ledgerBtnText}
             </button>
-            <button class="btn btn-secondary btn-sm" onclick="openSmsReminderModal('${c.id}')" title="Gumawa ng SMS paalala">
+            <button class="btn btn-secondary btn-sm" onclick="openSmsReminderModal('${c.id}')" title="${isEn ? 'Generate SMS reminder' : 'Gumawa ng SMS paalala'}">
               📱 SMS
             </button>
           </div>
@@ -1502,8 +1603,11 @@ function renderSalesTrendChart() {
     state.charts.salesTrend.destroy();
   }
 
+  const isEn = state.currentLang === 'en';
   // Generate 7-day trend labels
-  const days = ['Nov 1', 'Nov 2', 'Nov 3', 'Nov 4', 'Nov 5', 'Nov 6 (Ngayon)'];
+  const days = isEn
+    ? ['Nov 1', 'Nov 2', 'Nov 3', 'Nov 4', 'Nov 5', 'Nov 6 (Today)']
+    : ['Nov 1', 'Nov 2', 'Nov 3', 'Nov 4', 'Nov 5', 'Nov 6 (Ngayon)'];
   const salesData = [1200, 1550, 1420, 1680, 1850, Math.max(state.analytics.grossSales || 0, 750)];
   const profitData = [320, 410, 380, 450, 520, Math.max(state.analytics.netProfit || 0, 220)];
 
@@ -1513,13 +1617,13 @@ function renderSalesTrendChart() {
       labels: days,
       datasets: [
         {
-          label: 'Kabuuang Benta (Gross ₱)',
+          label: isEn ? 'Gross Sales (₱)' : 'Kabuuang Benta (Gross ₱)',
           data: salesData,
           backgroundColor: 'rgba(2, 132, 199, 0.75)',
           borderRadius: 6
         },
         {
-          label: 'Tunay na Tubo (Net Kita ₱)',
+          label: isEn ? 'True Net Profit (₱)' : 'Tunay na Tubo (Net Kita ₱)',
           data: profitData,
           backgroundColor: 'rgba(16, 185, 129, 0.85)',
           borderRadius: 6
@@ -1576,9 +1680,10 @@ function renderPaymentMethodsChart() {
 function renderExpensesList() {
   const container = document.getElementById('expenseListContainer');
   const sym = state.settings.currencySymbol || '₱';
+  const isEn = state.currentLang === 'en';
 
   if (state.expenses.length === 0) {
-    container.innerHTML = `<p style="font-size:0.85rem; color:var(--gray-500); padding:1rem 0;">Walang naitalang gastusin.</p>`;
+    container.innerHTML = `<p style="font-size:0.85rem; color:var(--gray-500); padding:1rem 0;">${isEn ? 'No recorded operating expenses.' : 'Walang naitalang gastusin.'}</p>`;
     return;
   }
 
@@ -1590,7 +1695,7 @@ function renderExpensesList() {
       </div>
       <div style="display:flex; align-items:center; gap:0.5rem;">
         <span style="font-weight:700; color:var(--danger); font-size:0.9rem;">-${sym}${e.amount.toFixed(2)}</span>
-        <button onclick="deleteExpense('${e.id}')" style="background:none; border:none; color:var(--gray-400); cursor:pointer; font-size:0.85rem;" title="Burahin">✕</button>
+        <button onclick="deleteExpense('${e.id}')" style="background:none; border:none; color:var(--gray-400); cursor:pointer; font-size:0.85rem;" title="${isEn ? 'Delete' : 'Burahin'}">✕</button>
       </div>
     </div>
   `).join('');
@@ -1624,7 +1729,7 @@ async function saveExpense(e) {
 
     if (!res.ok) throw new Error('Failed to record expense.');
     closeExpenseModal();
-    showToast('Naitala ang gastusin sa tindahan.');
+    showToast(state.currentLang === 'en' ? 'Operating expense successfully recorded.' : 'Naitala ang gastusin sa tindahan.');
     await fetchExpenses();
     await fetchAnalytics();
     renderAnalyticsCharts();
@@ -1635,10 +1740,11 @@ async function saveExpense(e) {
 }
 
 async function deleteExpense(id) {
-  if (!confirm('Burahin ang talaan ng gastusing ito?')) return;
+  const isEn = state.currentLang === 'en';
+  if (!confirm(isEn ? 'Delete this expense entry?' : 'Burahin ang talaan ng gastusing ito?')) return;
   try {
     await fetch(`/api/expenses/${id}`, { method: 'DELETE' });
-    showToast('Nabura ang gastos.');
+    showToast(isEn ? 'Expense deleted.' : 'Nabura ang gastos.');
     await fetchExpenses();
     await fetchAnalytics();
     renderAnalyticsCharts();
@@ -1651,15 +1757,17 @@ async function deleteExpense(id) {
 function renderSalesLedger() {
   const tbody = document.getElementById('salesLedgerBody');
   const sym = state.settings.currencySymbol || '₱';
+  const isEn = state.currentLang === 'en';
 
   if (state.sales.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:1rem; color:var(--gray-500);">Wala pang resibo.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:1rem; color:var(--gray-500);">${isEn ? 'No receipts recorded yet.' : 'Wala pang resibo.'}</td></tr>`;
     return;
   }
 
   tbody.innerHTML = state.sales.map(s => {
     const timeStr = new Date(s.timestamp).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' });
     const itemsSummary = s.items.map(i => `${i.qty}x ${i.name}`).join(', ');
+    const receiptBtnText = isEn ? '🧾 Receipt' : '🧾 Resibo';
 
     return `
       <tr>
@@ -1671,7 +1779,7 @@ function renderSalesLedger() {
         <td style="color:#047857;">+${sym}${s.grossProfit.toFixed(2)}</td>
         <td>
           <button class="btn btn-secondary btn-sm" onclick="showThermalReceiptById('${s.id}')">
-            🧾 Resibo
+            ${receiptBtnText}
           </button>
         </td>
       </tr>
@@ -1688,9 +1796,10 @@ function showThermalReceiptById(id) {
 function renderAiView() {
   const b = state.aiBriefing;
   const sym = state.settings.currencySymbol || '₱';
+  const isEn = state.currentLang === 'en';
 
   document.getElementById('aiHealthScore').textContent = b.healthScore || 85;
-  document.getElementById('aiStatusGreeting').textContent = b.statusGreeting || 'Maganda ang takbo ng tindahan!';
+  document.getElementById('aiStatusGreeting').textContent = b.statusGreeting || (isEn ? 'Your store operations are running healthy and steady!' : 'Maganda ang takbo ng tindahan!');
   document.getElementById('aiCriticalCount').textContent = b.criticalCount || 0;
   document.getElementById('aiDeadStockCount').textContent = b.deadStockCount || 0;
   document.getElementById('aiCapitalNeeded').textContent = `${sym}${(b.totalCapitalNeededForRestock || 0).toFixed(2)}`;
@@ -1700,7 +1809,7 @@ function renderAiView() {
   if (b.highlights && b.highlights.length > 0) {
     hList.innerHTML = b.highlights.map(h => `<li>${h}</li>`).join('');
   } else {
-    hList.innerHTML = `<li>Lahat ng paninda ay sumusunod sa maayos na takbo ng tindahan.</li>`;
+    hList.innerHTML = `<li>${isEn ? 'All store metrics are within optimal ranges.' : 'Lahat ng paninda ay sumusunod sa maayos na takbo ng tindahan.'}</li>`;
   }
 
   // Action Items
@@ -1708,48 +1817,58 @@ function renderAiView() {
   if (b.actionItems && b.actionItems.length > 0) {
     aList.innerHTML = b.actionItems.map(a => `<li>${a}</li>`).join('');
   } else {
-    aList.innerHTML = `<li>Walang kailangang agarang aksyon. Ligtas ang tindahan!</li>`;
+    aList.innerHTML = `<li>${isEn ? 'No immediate actions needed. Operations secure!' : 'Walang kailangang agarang aksyon. Ligtas ang tindahan!'}</li>`;
   }
 
   // Restock Predictions
   const rList = document.getElementById('aiRestockList');
   if (state.aiRestock.length === 0) {
-    rList.innerHTML = `<p style="font-size:0.85rem; color:var(--gray-500); padding:1rem;">Ligtas ang lahat ng stock! Walang critically low stock.</p>`;
+    rList.innerHTML = `<p style="font-size:0.85rem; color:var(--gray-500); padding:1rem;">${isEn ? 'All inventory levels are safe! No critically low stock.' : 'Ligtas ang lahat ng stock! Walang critically low stock.'}</p>`;
   } else {
-    rList.innerHTML = state.aiRestock.map(r => `
-      <div class="ai-recommendation-card ${r.urgency === 'OUT_OF_STOCK' || r.urgency === 'CRITICAL' ? 'danger' : 'warning'}">
-        <div>
-          <strong style="font-size:0.9rem;">${r.name}</strong>
-          <div style="font-size:0.8rem; color:var(--gray-700); margin:0.2rem 0;">
-            ${r.message}
+    rList.innerHTML = state.aiRestock.map(r => {
+      const msg = isEn ? (r.messageEn || r.message) : r.message;
+      const stockInfo = isEn 
+        ? `Current stock: ${r.currentStock} | Required capital: ${sym}${r.estimatedCost.toFixed(2)}`
+        : `Kasalukuyang stock: ${r.currentStock} | Kailangang puhunan: ${sym}${r.estimatedCost.toFixed(2)}`;
+      return `
+        <div class="ai-recommendation-card ${r.urgency === 'OUT_OF_STOCK' || r.urgency === 'CRITICAL' ? 'danger' : 'warning'}">
+          <div>
+            <strong style="font-size:0.9rem;">${r.name}</strong>
+            <div style="font-size:0.8rem; color:var(--gray-700); margin:0.2rem 0;">
+              ${msg}
+            </div>
+            <small style="color:var(--gray-500);">${stockInfo}</small>
           </div>
-          <small style="color:var(--gray-500);">Kasalukuyang stock: ${r.currentStock} | Kailangang puhunan: ${sym}${r.estimatedCost.toFixed(2)}</small>
+          <button class="btn btn-primary btn-sm" onclick="openRestockModal('${r.productId}')">
+            ➕ Restock
+          </button>
         </div>
-        <button class="btn btn-primary btn-sm" onclick="openRestockModal('${r.productId}')">
-          ➕ Restock
-        </button>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   }
 
   // Combos
   const cList = document.getElementById('aiCombosList');
   if (state.aiCombos.length === 0) {
-    cList.innerHTML = `<p style="font-size:0.85rem; color:var(--gray-500); padding:1rem;">Magtala pa ng mga resibo upang ma-analisa ang pinakamadalas bilhin nang sabay.</p>`;
+    cList.innerHTML = `<p style="font-size:0.85rem; color:var(--gray-500); padding:1rem;">${isEn ? 'Record more sales receipts to analyze combo purchasing patterns.' : 'Magtala pa ng mga resibo upang ma-analisa ang pinakamadalas bilhin nang sabay.'}</p>`;
   } else {
-    cList.innerHTML = state.aiCombos.map(c => `
-      <div class="ai-recommendation-card">
-        <div>
-          <strong style="font-size:0.9rem;">🍱 ${c.comboTitle}</strong>
-          <div style="font-size:0.8rem; color:var(--gray-700); margin:0.2rem 0;">
-            ${c.pitch}
-          </div>
-          <div style="font-size:0.75rem; color:#047857; font-weight:700;">
-            Normal Price: ${sym}${c.combinedRetail.toFixed(2)} ➔ I-alok ng: ${sym}${c.suggestedBundlePrice.toFixed(2)}
+    cList.innerHTML = state.aiCombos.map(c => {
+      const title = isEn ? (c.comboTitleEn || c.comboTitle) : c.comboTitle;
+      const pitch = isEn ? (c.pitchEn || c.pitch) : c.pitch;
+      return `
+        <div class="ai-recommendation-card">
+          <div>
+            <strong style="font-size:0.9rem;">🍱 ${title}</strong>
+            <div style="font-size:0.8rem; color:var(--gray-700); margin:0.2rem 0;">
+              ${pitch}
+            </div>
+            <div style="font-size:0.75rem; color:#047857; font-weight:700;">
+              ${isEn ? 'Regular Price:' : 'Normal Price:'} ${sym}${c.combinedRetail.toFixed(2)} ➔ ${isEn ? 'Bundle Offer:' : 'I-alok ng:'} ${sym}${c.suggestedBundlePrice.toFixed(2)}
+            </div>
           </div>
         </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   }
 }
 
@@ -1763,20 +1882,21 @@ async function submitAiQuestion() {
   const question = input.value.trim();
   if (!question) return;
 
+  const isEn = state.currentLang === 'en';
   const box = document.getElementById('aiResponseBox');
   box.style.display = 'block';
-  box.textContent = '🤔 Nag-iisip si Utak-Tindahan AI...';
+  box.textContent = isEn ? '🤔 Store AI is analyzing...' : '🤔 Nag-iisip si Utak-Tindahan AI...';
 
   try {
     const res = await fetch('/api/ai/ask', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question })
+      body: JSON.stringify({ question, lang: state.currentLang })
     });
     const data = await res.json();
     box.textContent = data.answer;
   } catch (err) {
-    box.textContent = 'Paumanhin, nagkaroon ng error sa pagsusuri.';
+    box.textContent = isEn ? 'Sorry, an error occurred during analysis.' : 'Paumanhin, nagkaroon ng error sa pagsusuri.';
   }
 }
 
@@ -1839,6 +1959,7 @@ function switchCamera() {
 // ==================== STORE SETTINGS & BACKUP ====================
 async function saveStoreSettings(e) {
   if (e) e.preventDefault();
+  const isEn = state.currentLang === 'en';
   const payload = {
     name: document.getElementById('settingStoreName').value.trim() || 'Vibe Tindahan',
     logo: document.getElementById('settingStoreLogo')?.value || '🏪',
@@ -1846,7 +1967,8 @@ async function saveStoreSettings(e) {
     owner: document.getElementById('settingStoreOwner').value.trim(),
     phone: document.getElementById('settingStorePhone').value.trim(),
     address: document.getElementById('settingStoreAddress').value.trim(),
-    receiptFooter: document.getElementById('settingReceiptFooter').value.trim()
+    receiptFooter: document.getElementById('settingReceiptFooter').value.trim(),
+    language: document.getElementById('settingStoreLang')?.value || state.currentLang
   };
 
   try {
@@ -1867,11 +1989,11 @@ async function saveStoreSettings(e) {
 
     const liveBadge = document.getElementById('settingsLiveBadge');
     if (liveBadge) {
-      liveBadge.textContent = '✅ Aktibo at Nai-save';
+      liveBadge.textContent = isEn ? '✅ Active & Saved' : '✅ Aktibo at Nai-save';
       liveBadge.className = 'badge badge-success';
     }
 
-    showToast(`Matagumpay na na-activate ang "${state.settings.name}"!`, 'success');
+    showToast(isEn ? `Successfully activated "${state.settings.name}"!` : `Matagumpay na na-activate ang "${state.settings.name}"!`, 'success');
   } catch (err) {
     showToast(err.message, 'danger');
   }

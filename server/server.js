@@ -223,13 +223,15 @@ app.get('/api/ai/combos', (req, res) => {
 });
 
 app.get('/api/ai/briefing', (req, res) => {
-  const briefing = aiEngine.getDailyExecutiveBriefing();
+  const lang = req.query.lang || storage.getSettings().language || 'fil';
+  const briefing = aiEngine.getDailyExecutiveBriefing(lang);
   res.json(briefing);
 });
 
 app.post('/api/ai/ask', (req, res) => {
-  const { question } = req.body;
-  const answer = aiEngine.askAI(question);
+  const { question, lang } = req.body;
+  const storeLang = lang || storage.getSettings().language || 'fil';
+  const answer = aiEngine.askAI(question, storeLang);
   res.json(answer);
 });
 

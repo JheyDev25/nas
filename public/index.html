@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Vibe Tindahan – Smart Business Management System</title>
   <link rel="stylesheet" href="style.css">
+  <script src="i18n.js"></script>
   <script src="vendor/chart.js"></script>
   <script src="vendor/confetti.js"></script>
   <script src="vendor/html5-qrcode.js"></script>
@@ -17,7 +18,7 @@
       <div class="brand-section">
         <div class="brand-logo" id="navStoreLogo">🏪</div>
         <div class="brand-title">
-          <h1><span id="navStoreName">Vibe Tindahan</span> <span class="brand-tag">PRO POS</span></h1>
+          <h1><span id="navStoreName">Vibe Tindahan</span> <span class="brand-tag" data-i18n="store_pro_badge">PRO POS</span></h1>
           <div class="brand-subtitle" id="navStoreTagline">Ang Maaasahang Tindahan ng Barangay</div>
         </div>
       </div>
@@ -25,47 +26,53 @@
       <!-- Quick Metrics Ribbon -->
       <div class="quick-stats-bar">
         <div class="stat-pill" title="Kabuuang Benta Ngayong Araw">
-          <span>💰 Benta Ngayon:</span>
+          <span data-i18n="sales_today_label">💰 Benta Ngayon:</span>
           <span class="stat-val" id="navTodaySales">₱0.00</span>
         </div>
         <div class="stat-pill" title="Tunay na Tubo (Net Profit)">
-          <span>✨ Net Kita:</span>
+          <span data-i18n="profit_today_label">✨ Net Kita:</span>
           <span class="stat-val" id="navTodayProfit">₱0.00</span>
         </div>
         <div class="stat-pill" title="Kabuuang Pautang sa Suki">
-          <span>📒 Pautang:</span>
+          <span data-i18n="debt_total_label">📒 Pautang:</span>
           <span class="stat-val" id="navTotalUtang">₱0.00</span>
         </div>
         <div class="stat-pill alert" id="navLowStockPill" onclick="switchTab('inventory', true)" title="I-click para makita ang mga paubos na paninda">
-          <span>⚠️ Paubos:</span>
+          <span data-i18n="low_stock_label">⚠️ Paubos:</span>
           <span class="stat-val" id="navLowStockCount">0</span>
         </div>
-        <button class="btn btn-secondary btn-sm" id="soundToggleBtn" onclick="toggleSound()" title="Sound Effects (Beep & Chimes)">
+        <button class="btn btn-secondary btn-sm" id="soundToggleBtn" onclick="toggleSound()" title="Sound Effects (Beep & Chimes)" data-i18n="sound_on">
           🔊 Sound: ON
         </button>
+
+        <!-- Language Switcher Toggle Ribbon -->
+        <div class="lang-switch-wrapper" role="group" aria-label="Language Selector">
+          <button type="button" class="lang-btn active" id="langBtnFil" onclick="setLanguage('fil')" title="Wikang Filipino / Taglish">🇵🇭 FIL</button>
+          <button type="button" class="lang-btn" id="langBtnEn" onclick="setLanguage('en')" title="English">🇺🇸 ENG</button>
+        </div>
       </div>
     </div>
   </header>
 
   <!-- Main Tabs Navigation -->
   <nav class="tabs-nav">
-    <button class="tab-btn active" data-tab="pos" onclick="switchTab('pos')">
+    <button class="tab-btn active" data-tab="pos" onclick="switchTab('pos')" data-i18n="tab_pos">
       🛒 POS Cashier
     </button>
     <button class="tab-btn" data-tab="inventory" onclick="switchTab('inventory')">
-      📦 Imbentaryo & Stock
+      <span data-i18n="tab_inventory">📦 Imbentaryo & Stock</span>
       <span class="tab-badge" id="inventoryTabBadge" style="display:none">0</span>
     </button>
-    <button class="tab-btn" data-tab="utang" onclick="switchTab('utang')">
+    <button class="tab-btn" data-tab="utang" onclick="switchTab('utang')" data-i18n="tab_utang">
       📒 Kuwaderno ng Utang
     </button>
-    <button class="tab-btn" data-tab="analytics" onclick="switchTab('analytics')">
+    <button class="tab-btn" data-tab="analytics" onclick="switchTab('analytics')" data-i18n="tab_analytics">
       📊 Benta at Tubo (Analytics)
     </button>
-    <button class="tab-btn" data-tab="ai" onclick="switchTab('ai')">
+    <button class="tab-btn" data-tab="ai" onclick="switchTab('ai')" data-i18n="tab_ai">
       🤖 Utak-Tindahan AI
     </button>
-    <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">
+    <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')" data-i18n="tab_settings">
       ⚙️ Settings & Backup
     </button>
   </nav>
@@ -78,7 +85,7 @@
       
       <!-- Quick Barcode Demo Shortcuts Drawer -->
       <div class="barcode-demo-strip">
-        <span style="font-size:0.75rem; font-weight:700; color:var(--gray-600); white-space:nowrap;">
+        <span style="font-size:0.75rem; font-weight:700; color:var(--gray-600); white-space:nowrap;" data-i18n="quick_barcodes">
           ⚡ Mabilisang Barcode:
         </span>
         <button class="barcode-pill" onclick="simulateBarcodeScan('4807770270016')">
@@ -108,12 +115,12 @@
           <div class="pos-top-bar">
             <div class="search-input-wrapper">
               <span class="search-icon">🔍</span>
-              <input type="text" id="posSearchInput" class="search-input" placeholder="Maghanap ng paninda o i-type ang Barcode..." oninput="handlePosSearch(this.value)">
+              <input type="text" id="posSearchInput" class="search-input" placeholder="Maghanap ng paninda o i-type ang Barcode..." data-i18n-placeholder="pos_search_placeholder" oninput="handlePosSearch(this.value)">
             </div>
-            <button class="btn btn-accent" onclick="openCameraScannerModal()">
+            <button class="btn btn-accent" onclick="openCameraScannerModal()" data-i18n="scan_barcode_btn">
               📷 Scan Barcode
             </button>
-            <button class="btn btn-secondary" onclick="clearPosFilters()">
+            <button class="btn btn-secondary" onclick="clearPosFilters()" data-i18n="reset_btn">
               I-reset
             </button>
           </div>
@@ -137,10 +144,10 @@
           </div>
           <div class="cart-header">
             <div class="cart-title">
-              🛒 Resibo ng Mamimili
+              <span data-i18n="customer_receipt_title">🛒 Resibo ng Mamimili</span>
               <span id="cartCountBadge" class="badge badge-info">0 item</span>
             </div>
-            <button class="btn btn-secondary btn-sm" onclick="clearCart()">
+            <button class="btn btn-secondary btn-sm" onclick="clearCart()" data-i18n="clear_cart_btn">
               Burahin
             </button>
           </div>
@@ -149,38 +156,38 @@
           <div class="cart-items-container" id="cartItemsContainer">
             <div class="empty-cart-state">
               <div class="empty-cart-icon">🛍️</div>
-              <p>Walang laman ang basket.</p>
-              <small>Pumili ng paninda o mag-scan ng barcode para simulan ang benta.</small>
+              <p data-i18n="empty_cart_msg">Walang laman ang basket.</p>
+              <small data-i18n="empty_cart_sub">Pumili ng paninda o mag-scan ng barcode para simulan ang benta.</small>
             </div>
           </div>
 
           <!-- Cart Calculation -->
           <div class="cart-calculation">
             <div class="calc-row">
-              <span>Subtotal:</span>
+              <span data-i18n="subtotal">Subtotal:</span>
               <span id="cartSubtotal">₱0.00</span>
             </div>
 
             <div class="calc-row" style="align-items:center;">
-              <span>Diskwento:</span>
+              <span data-i18n="discount">Diskwento:</span>
               <div style="display:flex; gap:0.25rem;">
                 <select id="cartDiscountType" class="form-control" style="padding:0.2rem 0.4rem; font-size:0.75rem; width:110px;" onchange="applyDiscount()">
-                  <option value="none">Walang Bawas</option>
-                  <option value="pwd_senior">Senior/PWD (5%)</option>
-                  <option value="round_off">Bawas Piso (₱)</option>
-                  <option value="custom">Iba pa...</option>
+                  <option value="none" data-i18n="discount_none">Walang Bawas</option>
+                  <option value="pwd_senior" data-i18n="discount_pwd_senior">Senior/PWD (5%)</option>
+                  <option value="round_off" data-i18n="discount_round_off">Bawas Piso (₱)</option>
+                  <option value="custom" data-i18n="discount_custom">Iba pa...</option>
                 </select>
                 <input type="number" id="cartDiscountValue" class="form-control" style="width:60px; padding:0.2rem; font-size:0.75rem; display:none;" value="0" min="0" oninput="applyDiscount()">
               </div>
             </div>
 
             <div class="calc-row" id="cartDiscountRow" style="color:var(--accent-hover); display:none;">
-              <span>Bawas sa Presyo:</span>
+              <span data-i18n="discount_amount">Bawas sa Presyo:</span>
               <span id="cartDiscountAmount">-₱0.00</span>
             </div>
 
             <div class="calc-row total-row">
-              <span>KABUUAN:</span>
+              <span data-i18n="total_due">KABUUAN:</span>
               <span id="cartTotalAmount">₱0.00</span>
             </div>
           </div>
@@ -188,13 +195,13 @@
           <!-- Payment Section -->
           <div class="payment-section">
             <div class="payment-method-selector">
-              <button class="pay-method-btn active" data-method="Cash" onclick="selectPaymentMethod('Cash')">
+              <button class="pay-method-btn active" data-method="Cash" onclick="selectPaymentMethod('Cash')" data-i18n="pay_cash">
                 💵 Cash
               </button>
-              <button class="pay-method-btn" data-method="GCash" onclick="selectPaymentMethod('GCash')">
+              <button class="pay-method-btn" data-method="GCash" onclick="selectPaymentMethod('GCash')" data-i18n="pay_gcash">
                 📱 GCash / Maya
               </button>
-              <button class="pay-method-btn" data-method="Utang" onclick="selectPaymentMethod('Utang')">
+              <button class="pay-method-btn" data-method="Utang" onclick="selectPaymentMethod('Utang')" data-i18n="pay_utang">
                 📒 Utang
               </button>
             </div>
@@ -202,12 +209,12 @@
             <!-- Cash Tender Area -->
             <div id="cashPaymentArea">
               <div style="display:flex; gap:0.5rem; align-items:center;">
-                <input type="number" id="cashTenderedInput" class="form-control" placeholder="Bayad ng customer (₱)..." oninput="calculateSukli()">
+                <input type="number" id="cashTenderedInput" class="form-control" placeholder="Bayad ng customer (₱)..." data-i18n-placeholder="cash_tendered_placeholder" oninput="calculateSukli()">
               </div>
 
               <!-- Quick Bill Chips -->
               <div class="quick-bills">
-                <button class="quick-bill-btn" onclick="setCashTender('exact')">Tamang Bayad</button>
+                <button class="quick-bill-btn" onclick="setCashTender('exact')" data-i18n="exact_cash_btn">Tamang Bayad</button>
                 <button class="quick-bill-btn" onclick="setCashTender(50)">₱50</button>
                 <button class="quick-bill-btn" onclick="setCashTender(100)">₱100</button>
                 <button class="quick-bill-btn" onclick="setCashTender(200)">₱200</button>
@@ -217,15 +224,15 @@
 
               <!-- Sukli (Change) Display -->
               <div class="sukli-display">
-                <span class="sukli-label">SUKLI (Change):</span>
+                <span class="sukli-label" data-i18n="change_label">SUKLI (Change):</span>
                 <span class="sukli-amount" id="sukliAmountDisplay">₱0.00</span>
               </div>
             </div>
 
             <!-- GCash / Maya Area -->
             <div id="gcashPaymentArea" style="display:none;">
-              <input type="text" id="gcashRefInput" class="form-control" placeholder="GCash Ref No. (e.g. 102938475)">
-              <small style="color:var(--gray-600); display:block; margin-top:0.25rem;">
+              <input type="text" id="gcashRefInput" class="form-control" placeholder="GCash Ref No. (e.g. 102938475)" data-i18n-placeholder="gcash_ref_placeholder">
+              <small style="color:var(--gray-600); display:block; margin-top:0.25rem;" data-i18n="gcash_tip">
                 Tip: Kumpirmahin muna ang natanggap na SMS sa iyong telepono.
               </small>
             </div>
@@ -233,7 +240,7 @@
             <!-- Utang Customer Selector Area -->
             <div id="utangPaymentArea" style="display:none;">
               <select id="utangCustomerSelect" class="form-control" onchange="checkSelectedCustomerUtang()">
-                <option value="">-- Piliin ang Pangalan ng Suki --</option>
+                <option value="" data-i18n="select_customer_default">-- Piliin ang Pangalan ng Suki --</option>
               </select>
               <div id="customerCreditAlert" style="margin-top:0.35rem; font-size:0.75rem; color:var(--danger); display:none;">
                 ⚠️ Paalala: Malapit na sa credit limit ang sukling ito.
@@ -241,7 +248,7 @@
             </div>
 
             <!-- Complete Checkout Button -->
-            <button class="btn btn-accent btn-lg" id="checkoutBtn" onclick="processCheckout()" style="width:100%; margin-top:0.25rem;">
+            <button class="btn btn-accent btn-lg" id="checkoutBtn" onclick="processCheckout()" style="width:100%; margin-top:0.25rem;" data-i18n="checkout_btn">
               ✅ Bayad at Resibo (F9)
             </button>
           </div>
@@ -254,7 +261,7 @@
           <span class="mobile-cart-badge" id="mobileCartBadge">0 items</span>
           <span class="mobile-cart-total-price" id="mobileCartBarTotal">₱0.00</span>
         </div>
-        <button type="button" class="btn btn-accent btn-sm mobile-cart-cta">
+        <button type="button" class="btn btn-accent btn-sm mobile-cart-cta" data-i18n="mobile_cart_cta">
           Tingnan ang Basket / Bayad ➔
         </button>
       </div>
@@ -270,11 +277,11 @@
         <div class="alert-banner-content">
           <span class="alert-icon">⚠️</span>
           <div>
-            <strong id="lowStockBannerTitle">Pansin: May mga produktong paubos na!</strong>
-            <div id="lowStockBannerSub">I-restock agad bago mawalan ng benta sa mga suki.</div>
+            <strong id="lowStockBannerTitle" data-i18n="low_stock_banner_title">Pansin: May mga produktong paubos na!</strong>
+            <div id="lowStockBannerSub" data-i18n="low_stock_banner_sub">I-restock agad bago mawalan ng benta sa mga suki.</div>
           </div>
         </div>
-        <button class="btn btn-danger btn-sm" onclick="filterLowStockOnly()">
+        <button class="btn btn-danger btn-sm" onclick="filterLowStockOnly()" data-i18n="view_low_stock_btn">
           Tingnan ang Paubos
         </button>
       </div>
@@ -283,20 +290,20 @@
         <!-- Inventory Toolbar -->
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem; margin-bottom:1rem;">
           <div style="display:flex; gap:0.5rem; flex:1; min-width:280px; flex-wrap:wrap;">
-            <input type="text" id="inventorySearch" class="form-control" style="max-width:300px;" placeholder="Maghanap ayon sa Pangalan o Barcode..." oninput="renderInventoryTable()">
+            <input type="text" id="inventorySearch" class="form-control" style="max-width:300px;" placeholder="Maghanap ayon sa Pangalan o Barcode..." data-i18n-placeholder="inventory_search_placeholder" oninput="renderInventoryTable()">
             <select id="inventoryCategoryFilter" class="form-control" style="max-width:200px;" onchange="renderInventoryTable()">
-              <option value="All">Lahat ng Kategorya</option>
+              <option value="All" data-i18n="all_categories_filter">Lahat ng Kategorya</option>
             </select>
-            <button class="btn btn-secondary btn-sm" id="toggleLowStockFilterBtn" onclick="toggleLowStockFilter()">
+            <button class="btn btn-secondary btn-sm" id="toggleLowStockFilterBtn" onclick="toggleLowStockFilter()" data-i18n="low_stock_only_btn">
               ⚠️ Paubos Lamang
             </button>
           </div>
 
           <div style="display:flex; gap:0.5rem;">
-            <button class="btn btn-primary" onclick="openAddProductModal()">
+            <button class="btn btn-primary" onclick="openAddProductModal()" data-i18n="add_product_btn">
               ➕ Magdagdag ng Paninda
             </button>
-            <button class="btn btn-secondary" onclick="exportInventoryCSV()">
+            <button class="btn btn-secondary" onclick="exportInventoryCSV()" data-i18n="export_csv_btn">
               📥 Export CSV
             </button>
           </div>
@@ -307,16 +314,16 @@
           <table class="data-table">
             <thead>
               <tr>
-                <th>Barcode</th>
-                <th>Pangalan ng Produkto</th>
-                <th>Kategorya</th>
-                <th>Yunit</th>
-                <th>Puhunan</th>
-                <th>Benta</th>
-                <th>Tubo (Margin)</th>
-                <th>Stock</th>
-                <th>Status</th>
-                <th>Aksyon</th>
+                <th data-i18n="th_barcode">Barcode</th>
+                <th data-i18n="th_product_name">Pangalan ng Produkto</th>
+                <th data-i18n="th_category">Kategorya</th>
+                <th data-i18n="th_unit">Yunit</th>
+                <th data-i18n="th_cost">Puhunan</th>
+                <th data-i18n="th_price">Benta</th>
+                <th data-i18n="th_margin">Tubo (Margin)</th>
+                <th data-i18n="th_stock">Stock</th>
+                <th data-i18n="th_status">Status</th>
+                <th data-i18n="th_actions">Aksyon</th>
               </tr>
             </thead>
             <tbody id="inventoryTableBody">
@@ -332,34 +339,34 @@
       <!-- Utang KPI Banner -->
       <div class="stats-kpi-grid">
         <div class="kpi-card highlight">
-          <div class="kpi-title">Kabuuang Pautang</div>
+          <div class="kpi-title" data-i18n="kpi_total_debt">Kabuuang Pautang</div>
           <div class="kpi-value" id="kpiTotalUtang">₱0.00</div>
-          <div class="kpi-subtitle">Lahat ng aktibong balanse ng suki</div>
+          <div class="kpi-subtitle" data-i18n="kpi_total_debt_sub">Lahat ng aktibong balanse ng suki</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-title">Bilang ng May Utang</div>
+          <div class="kpi-title" data-i18n="kpi_debtor_count">Bilang ng May Utang</div>
           <div class="kpi-value" id="kpiDebtorCount">0</div>
-          <div class="kpi-subtitle">Mga pamilyang may credit line</div>
+          <div class="kpi-subtitle" data-i18n="kpi_debtor_count_sub">Mga pamilyang may credit line</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-title">Kailangang Paalalahanan</div>
+          <div class="kpi-title" data-i18n="kpi_due_debtors">Kailangang Paalalahanan</div>
           <div class="kpi-value" id="kpiDueDebtorsCount" style="color:var(--danger)">0</div>
-          <div class="kpi-subtitle">Malapit o lampas na sa credit limit</div>
+          <div class="kpi-subtitle" data-i18n="kpi_due_debtors_sub">Malapit o lampas na sa credit limit</div>
         </div>
       </div>
 
       <div class="card">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem; margin-bottom:1rem;">
           <div style="display:flex; gap:0.5rem; flex:1; min-width:280px;">
-            <input type="text" id="utangCustomerSearch" class="form-control" style="max-width:320px;" placeholder="Maghanap ng Suki (Pangalan, Telepono, Tirahan)..." oninput="renderUtangList()">
+            <input type="text" id="utangCustomerSearch" class="form-control" style="max-width:320px;" placeholder="Maghanap ng Suki (Pangalan, Telepono, Tirahan)..." data-i18n-placeholder="utang_search_placeholder" oninput="renderUtangList()">
             <select id="utangStatusFilter" class="form-control" style="max-width:180px;" onchange="renderUtangList()">
-              <option value="All">Lahat ng Status</option>
-              <option value="Good">Mabait Magbayad (Good)</option>
-              <option value="Due Soon">Due Soon</option>
-              <option value="Warning">Warning / Overdue</option>
+              <option value="All" data-i18n="utang_all_status">Lahat ng Status</option>
+              <option value="Good" data-i18n="utang_good_payer">Mabait Magbayad (Good)</option>
+              <option value="Due Soon" data-i18n="utang_due_soon">Due Soon</option>
+              <option value="Warning" data-i18n="utang_warning">Warning / Overdue</option>
             </select>
           </div>
-          <button class="btn btn-primary" onclick="openAddCustomerModal()">
+          <button class="btn btn-primary" onclick="openAddCustomerModal()" data-i18n="add_customer_btn">
             ➕ Maglista ng Bagong Suki
           </button>
         </div>
@@ -369,13 +376,13 @@
           <table class="data-table">
             <thead>
               <tr>
-                <th>Pangalan ng Suki</th>
-                <th>Telepono / Tirahan</th>
-                <th>Credit Limit</th>
-                <th>Kasalukuyang Balanse</th>
-                <th>Katayuan (Status)</th>
-                <th>Paalala / Tala</th>
-                <th>Aksyon</th>
+                <th data-i18n="th_customer_name">Pangalan ng Suki</th>
+                <th data-i18n="th_phone_address">Telepono / Tirahan</th>
+                <th data-i18n="th_credit_limit">Credit Limit</th>
+                <th data-i18n="th_current_balance">Kasalukuyang Balanse</th>
+                <th data-i18n="th_status">Katayuan (Status)</th>
+                <th data-i18n="th_notes">Paalala / Tala</th>
+                <th data-i18n="th_actions">Aksyon</th>
               </tr>
             </thead>
             <tbody id="utangTableBody">
@@ -391,37 +398,37 @@
       <!-- Financial Key Metrics -->
       <div class="stats-kpi-grid">
         <div class="kpi-card">
-          <div class="kpi-title">Kabuuang Benta (Gross)</div>
+          <div class="kpi-title" data-i18n="kpi_gross_sales">Kabuuang Benta (Gross)</div>
           <div class="kpi-value" id="analyticsGrossSales">₱0.00</div>
-          <div class="kpi-subtitle"><span id="analyticsTxCount">0</span> resibo ngayong araw</div>
+          <div class="kpi-subtitle"><span id="analyticsTxCount">0</span> <span data-i18n="kpi_sales_receipts_today">resibo ngayong araw</span></div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-title">Puhunan ng Nabenta</div>
+          <div class="kpi-title" data-i18n="kpi_cost_of_sales">Puhunan ng Nabenta</div>
           <div class="kpi-value" id="analyticsCostSales">₱0.00</div>
-          <div class="kpi-subtitle">Cost of goods sold</div>
+          <div class="kpi-subtitle" data-i18n="kpi_cost_sub">Cost of goods sold</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-title">Gastusin sa Tindahan</div>
+          <div class="kpi-title" data-i18n="kpi_store_expenses">Gastusin sa Tindahan</div>
           <div class="kpi-value" id="analyticsExpenses" style="color:var(--danger)">₱0.00</div>
-          <div class="kpi-subtitle">Kuryente, yelo, pamasahe, atbp.</div>
+          <div class="kpi-subtitle" data-i18n="kpi_expenses_sub">Kuryente, yelo, pamasahe, atbp.</div>
         </div>
         <div class="kpi-card highlight">
-          <div class="kpi-title">TUNAY NA KITA (Net Profit)</div>
+          <div class="kpi-title" data-i18n="kpi_net_profit">TUNAY NA KITA (Net Profit)</div>
           <div class="kpi-value" id="analyticsNetProfit" style="color:var(--accent-hover)">₱0.00</div>
-          <div class="kpi-subtitle">Margin: <span id="analyticsMarginPct">0%</span></div>
+          <div class="kpi-subtitle"><span data-i18n="kpi_margin_prefix">Margin:</span> <span id="analyticsMarginPct">0%</span></div>
         </div>
       </div>
 
       <!-- Charts Row -->
       <div class="responsive-grid-2-1">
         <div class="card">
-          <h3 style="font-size:1rem; font-weight:800; margin-bottom:1rem;">📈 Trend ng Benta at Tubo</h3>
+          <h3 style="font-size:1rem; font-weight:800; margin-bottom:1rem;" data-i18n="chart_sales_trend_title">📈 Trend ng Benta at Tubo</h3>
           <div style="height:250px;">
             <canvas id="salesTrendChart"></canvas>
           </div>
         </div>
         <div class="card">
-          <h3 style="font-size:1rem; font-weight:800; margin-bottom:1rem;">💳 Paraan ng Pagbayad</h3>
+          <h3 style="font-size:1rem; font-weight:800; margin-bottom:1rem;" data-i18n="chart_payment_methods_title">💳 Paraan ng Pagbayad</h3>
           <div style="height:250px;">
             <canvas id="paymentMethodsChart"></canvas>
           </div>
@@ -433,8 +440,8 @@
         <!-- Daily Expense Logger -->
         <div class="card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
-            <h3 style="font-size:1rem; font-weight:800;">💸 Gastusin sa Tindahan</h3>
-            <button class="btn btn-secondary btn-sm" onclick="openExpenseModal()">➕ Itala</button>
+            <h3 style="font-size:1rem; font-weight:800;" data-i18n="expenses_title">💸 Gastusin sa Tindahan</h3>
+            <button class="btn btn-secondary btn-sm" onclick="openExpenseModal()" data-i18n="record_expense_btn">➕ Itala</button>
           </div>
           <div id="expenseListContainer" style="display:flex; flex-direction:column; gap:0.5rem; max-height:350px; overflow-y:auto;">
             <!-- Rendered expenses -->
@@ -444,20 +451,20 @@
         <!-- Recent Sales Ledger -->
         <div class="card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
-            <h3 style="font-size:1rem; font-weight:800;">🧾 Kamakailang Resibo at Transaksyon</h3>
-            <span style="font-size:0.8rem; color:var(--gray-500);">Live Sales Feed</span>
+            <h3 style="font-size:1rem; font-weight:800;" data-i18n="recent_transactions_title">🧾 Kamakailang Resibo at Transaksyon</h3>
+            <span style="font-size:0.8rem; color:var(--gray-500);" data-i18n="live_sales_feed">Live Sales Feed</span>
           </div>
           <div class="table-responsive" style="max-height:350px; overflow-y:auto; margin-top:0;">
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>Oras</th>
-                  <th>Resibo #</th>
-                  <th>Mga Item</th>
-                  <th>Paraan</th>
-                  <th>Benta</th>
-                  <th>Tubo</th>
-                  <th>Aksyon</th>
+                  <th data-i18n="th_time">Oras</th>
+                  <th data-i18n="th_receipt_num">Resibo #</th>
+                  <th data-i18n="th_items">Mga Item</th>
+                  <th data-i18n="th_payment">Paraan</th>
+                  <th data-i18n="th_sale_amount">Benta</th>
+                  <th data-i18n="th_profit">Tubo</th>
+                  <th data-i18n="th_actions">Aksyon</th>
                 </tr>
               </thead>
               <tbody id="salesLedgerBody">
@@ -476,34 +483,34 @@
         <div>
           <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.25rem;">
             <span style="font-size:1.5rem;">🤖</span>
-            <span style="font-size:1.1rem; font-weight:800; text-transform:uppercase; letter-spacing:1px;">Utak-Tindahan AI Executive Advisor</span>
+            <span style="font-size:1.1rem; font-weight:800; text-transform:uppercase; letter-spacing:1px;" data-i18n="ai_header_title">Utak-Tindahan AI Executive Advisor</span>
           </div>
           <p id="aiStatusGreeting" style="font-size:1.05rem; opacity:0.95; max-width:650px;">
             Maganda at matatag ang takbo ng iyong tindahan!
           </p>
           <div style="display:flex; gap:1rem; margin-top:0.75rem; flex-wrap:wrap;">
             <div style="font-size:0.85rem; background:rgba(255,255,255,0.2); padding:0.25rem 0.75rem; border-radius:var(--radius-full);">
-              📦 Paubos na Paninda: <strong id="aiCriticalCount">0</strong>
+              <span data-i18n="ai_critical_label">📦 Paubos na Paninda:</span> <strong id="aiCriticalCount">0</strong>
             </div>
             <div style="font-size:0.85rem; background:rgba(255,255,255,0.2); padding:0.25rem 0.75rem; border-radius:var(--radius-full);">
-              💼 Nakatenggang Puhunan: <strong id="aiDeadStockCount">0</strong>
+              <span data-i18n="ai_deadstock_label">💼 Nakatenggang Puhunan:</span> <strong id="aiDeadStockCount">0</strong>
             </div>
             <div style="font-size:0.85rem; background:rgba(255,255,255,0.2); padding:0.25rem 0.75rem; border-radius:var(--radius-full);">
-              💵 Kailangang Puhunan sa Restock: <strong id="aiCapitalNeeded">₱0.00</strong>
+              <span data-i18n="ai_capital_needed_label">💵 Kailangang Puhunan sa Restock:</span> <strong id="aiCapitalNeeded">₱0.00</strong>
             </div>
           </div>
         </div>
 
         <div style="text-align:center; background:rgba(255,255,255,0.15); padding:1rem 1.5rem; border-radius:var(--radius-lg);">
           <div class="health-number" id="aiHealthScore">88</div>
-          <div style="font-size:0.75rem; font-weight:700; letter-spacing:1px; text-transform:uppercase;">Store Health Score</div>
+          <div style="font-size:0.75rem; font-weight:700; letter-spacing:1px; text-transform:uppercase;" data-i18n="ai_health_score_label">Store Health Score</div>
         </div>
       </div>
 
       <!-- Highlights & Action Items -->
       <div class="responsive-grid-1-1">
         <div class="card">
-          <h3 style="font-size:1rem; font-weight:800; margin-bottom:0.75rem; color:#0369a1;">
+          <h3 style="font-size:1rem; font-weight:800; margin-bottom:0.75rem; color:#0369a1;" data-i18n="ai_highlights_title">
             ✨ Mga Magandang Balita & Performance
           </h3>
           <ul id="aiHighlightsList" style="padding-left:1.25rem; font-size:0.875rem; color:var(--gray-800); display:flex; flex-direction:column; gap:0.4rem;">
@@ -512,7 +519,7 @@
         </div>
 
         <div class="card">
-          <h3 style="font-size:1rem; font-weight:800; margin-bottom:0.75rem; color:#b91c1c;">
+          <h3 style="font-size:1rem; font-weight:800; margin-bottom:0.75rem; color:#b91c1c;" data-i18n="ai_actions_title">
             ⚡ Mga Dapat Aksyunan Ngayong Araw
           </h3>
           <ul id="aiActionItemsList" style="padding-left:1.25rem; font-size:0.875rem; color:var(--gray-800); display:flex; flex-direction:column; gap:0.4rem;">
@@ -525,7 +532,7 @@
       <div class="responsive-grid-1-1">
         <!-- Restock Predictions -->
         <div class="card">
-          <h3 style="font-size:1rem; font-weight:800; margin-bottom:0.75rem;">
+          <h3 style="font-size:1rem; font-weight:800; margin-bottom:0.75rem;" data-i18n="ai_restock_title">
             📦 Predictive Restock Advisor
           </h3>
           <div id="aiRestockList" style="display:flex; flex-direction:column; gap:0.5rem; max-height:360px; overflow-y:auto;">
@@ -535,7 +542,7 @@
 
         <!-- Dagdag Benta Combos -->
         <div class="card">
-          <h3 style="font-size:1rem; font-weight:800; margin-bottom:0.75rem;">
+          <h3 style="font-size:1rem; font-weight:800; margin-bottom:0.75rem;" data-i18n="ai_combos_title">
             🍱 Dagdag-Benta Bundles (Frequently Bought Together)
           </h3>
           <div id="aiCombosList" style="display:flex; flex-direction:column; gap:0.5rem; max-height:360px; overflow-y:auto;">
@@ -546,32 +553,32 @@
 
       <!-- Interactive Tanong kay AI Tindahan -->
       <div class="card">
-        <h3 style="font-size:1rem; font-weight:800; margin-bottom:0.5rem;">
+        <h3 style="font-size:1rem; font-weight:800; margin-bottom:0.5rem;" data-i18n="ai_ask_title">
           💬 Tanong kay Utak-Tindahan AI
         </h3>
-        <p style="font-size:0.85rem; color:var(--gray-600); margin-bottom:0.75rem;">
+        <p style="font-size:0.85rem; color:var(--gray-600); margin-bottom:0.75rem;" data-i18n="ai_ask_desc">
           Maaari mong itanong ang kahit anong tungkol sa benta, kita, pinakamalakas na paninda, o sinong may utang.
         </p>
 
         <!-- Suggested Prompt Chips -->
         <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:0.75rem;">
-          <button class="barcode-pill" onclick="askAiPrompt('Magkano ang kinita ko ngayong araw?')">
+          <button class="barcode-pill" onclick="askAiPrompt('Magkano ang kinita ko ngayong araw?')" data-i18n="ai_prompt_1">
             💰 Magkano ang kinita ko?
           </button>
-          <button class="barcode-pill" onclick="askAiPrompt('Sino ang may pinakamalaking utang?')">
+          <button class="barcode-pill" onclick="askAiPrompt('Sino ang may pinakamalaking utang?')" data-i18n="ai_prompt_2">
             📒 Sino ang may pinakamalaking utang?
           </button>
-          <button class="barcode-pill" onclick="askAiPrompt('Anong paninda ang dapat kong i-restock?')">
+          <button class="barcode-pill" onclick="askAiPrompt('Anong paninda ang dapat kong i-restock?')" data-i18n="ai_prompt_3">
             📦 Anong paninda ang dapat i-order?
           </button>
-          <button class="barcode-pill" onclick="askAiPrompt('Aling produkto ang pinakamalakas o best seller?')">
+          <button class="barcode-pill" onclick="askAiPrompt('Aling produkto ang pinakamalakas o best seller?')" data-i18n="ai_prompt_4">
             🏆 Aling paninda ang pinakamalakas?
           </button>
         </div>
 
         <div style="display:flex; gap:0.5rem;">
-          <input type="text" id="aiQuestionInput" class="form-control" placeholder="Halimbawa: Paano ko mapapataas ang kita sa sari-sari store ko?" onkeypress="if(event.key==='Enter') submitAiQuestion()">
-          <button class="btn btn-primary" onclick="submitAiQuestion()">
+          <input type="text" id="aiQuestionInput" class="form-control" placeholder="Halimbawa: Paano ko mapapataas ang kita sa sari-sari store ko?" data-i18n-placeholder="ai_input_placeholder" onkeypress="if(event.key==='Enter') submitAiQuestion()">
+          <button class="btn btn-primary" onclick="submitAiQuestion()" data-i18n="ai_ask_btn">
             Itanong 🚀
           </button>
         </div>
@@ -588,14 +595,14 @@
         <div class="card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
             <h3 style="font-size:1.1rem; font-weight:800; display:flex; align-items:center; gap:0.5rem;">
-              <span id="previewFormLogo">🏪</span> Impormasyon ng Tindahan
+              <span id="previewFormLogo">🏪</span> <span data-i18n="settings_store_info_title">Impormasyon ng Tindahan</span>
             </h3>
-            <span class="badge badge-success" id="settingsLiveBadge">⚡ Live Synchronized</span>
+            <span class="badge badge-success" id="settingsLiveBadge" data-i18n="settings_live_sync_badge">⚡ Live Synchronized</span>
           </div>
 
           <!-- Live Preview Banner -->
           <div style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#fff; border-radius:var(--radius-md); padding:0.75rem 1rem; margin-bottom:1rem; box-shadow:0 2px 8px rgba(2,132,199,0.25);">
-            <div style="font-size:0.7rem; text-transform:uppercase; font-weight:700; opacity:0.8; letter-spacing:1px; margin-bottom:0.25rem;">Live Header Preview</div>
+            <div style="font-size:0.7rem; text-transform:uppercase; font-weight:700; opacity:0.8; letter-spacing:1px; margin-bottom:0.25rem;" data-i18n="settings_live_preview_header">Live Header Preview</div>
             <div style="display:flex; align-items:center; gap:0.6rem;">
               <div style="font-size:1.5rem; background:rgba(255,255,255,0.2); width:36px; height:36px; border-radius:6px; display:flex; align-items:center; justify-content:center;" id="previewHeaderIcon">🏪</div>
               <div>
@@ -608,11 +615,11 @@
           <form id="storeSettingsForm" onsubmit="saveStoreSettings(event)">
             <div class="form-row">
               <div class="form-group" style="flex:1;">
-                <label class="form-label">Pangalan ng Tindahan *:</label>
+                <label class="form-label" data-i18n="settings_store_name_label">Pangalan ng Tindahan *:</label>
                 <input type="text" id="settingStoreName" class="form-control" required placeholder="Hal. Vibe Tindahan" oninput="handleSettingsLiveInput()">
               </div>
               <div class="form-group" style="max-width:140px;">
-                <label class="form-label">Icon / Logo:</label>
+                <label class="form-label" data-i18n="settings_store_logo_label">Icon / Logo:</label>
                 <select id="settingStoreLogo" class="form-control" onchange="handleSettingsLiveInput()">
                   <option value="🏪">🏪 Tindahan</option>
                   <option value="🛒">🛒 Grocery</option>
@@ -626,28 +633,35 @@
               </div>
             </div>
             <div class="form-group">
-              <label class="form-label">Slogan o Tagline:</label>
+              <label class="form-label" data-i18n="settings_tagline_label">Slogan o Tagline:</label>
               <input type="text" id="settingStoreTagline" class="form-control" placeholder="Hal. Ang Maaasahang Tindahan ng Barangay" oninput="handleSettingsLiveInput()">
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label class="form-label">May-ari / Tindero:</label>
+                <label class="form-label" data-i18n="settings_owner_label">May-ari / Tindero:</label>
                 <input type="text" id="settingStoreOwner" class="form-control" placeholder="Hal. Ate Baby & Kuya Jun">
               </div>
               <div class="form-group">
-                <label class="form-label">Telepono:</label>
+                <label class="form-label" data-i18n="settings_phone_label">Telepono:</label>
                 <input type="text" id="settingStorePhone" class="form-control" placeholder="Hal. 0917-888-8423">
               </div>
             </div>
             <div class="form-group">
-              <label class="form-label">Tirahan / Address:</label>
+              <label class="form-label" data-i18n="settings_address_label">Tirahan / Address:</label>
               <input type="text" id="settingStoreAddress" class="form-control" placeholder="Hal. 123 Mabini St., Brgy. San Antonio, Pasig City">
             </div>
             <div class="form-group">
-              <label class="form-label">Mensahe sa Ibaba ng Resibo (Receipt Footer):</label>
+              <label class="form-label" data-i18n="settings_footer_label">Mensahe sa Ibaba ng Resibo (Receipt Footer):</label>
               <textarea id="settingReceiptFooter" class="form-control" rows="2" placeholder="Mensahe para sa resibo"></textarea>
             </div>
-            <button type="submit" class="btn btn-primary" id="saveSettingsBtn">
+            <div class="form-group">
+              <label class="form-label" data-i18n="settings_lang_label">Wika ng Sistema / Language:</label>
+              <select id="settingStoreLang" class="form-control" onchange="setLanguage(this.value)">
+                <option value="fil">🇵🇭 Wikang Filipino (Taglish)</option>
+                <option value="en">🇺🇸 English</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary" id="saveSettingsBtn" data-i18n="save_settings_btn">
               💾 I-save at I-activate ang Settings
             </button>
           </form>
@@ -655,24 +669,24 @@
 
         <!-- Backup & Maintenance -->
         <div class="card">
-          <h3 style="font-size:1.1rem; font-weight:800; margin-bottom:1rem;">🛡️ Backup at Kaligtasan ng Datos</h3>
-          <p style="font-size:0.875rem; color:var(--gray-600); margin-bottom:1rem;">
+          <h3 style="font-size:1.1rem; font-weight:800; margin-bottom:1rem;" data-i18n="backup_title">🛡️ Backup at Kaligtasan ng Datos</h3>
+          <p style="font-size:0.875rem; color:var(--gray-600); margin-bottom:1rem;" data-i18n="backup_desc">
             Hindi mawawala ang iyong mga transaksyon at talaan ng utang. Maaari mong i-download ang kumpletong backup anumang oras.
           </p>
 
           <div style="display:flex; flex-direction:column; gap:0.75rem;">
-            <button class="btn btn-accent" onclick="downloadBackup()">
+            <button class="btn btn-accent" onclick="downloadBackup()" data-i18n="download_backup_btn">
               📥 I-download ang Kumpletong Backup (JSON)
             </button>
 
             <div style="border-top:1px solid var(--gray-200); padding-top:0.75rem;">
-              <label class="form-label">I-restore mula sa Backup File:</label>
+              <label class="form-label" data-i18n="restore_backup_label">I-restore mula sa Backup File:</label>
               <input type="file" id="restoreFileInput" class="form-control" accept=".json" onchange="restoreBackupFromFile(event)">
             </div>
 
             <div style="border-top:1px solid var(--gray-200); padding-top:0.75rem;">
-              <label class="form-label" style="color:var(--danger)">Panganib na Aksyon:</label>
-              <button class="btn btn-danger btn-sm" onclick="confirmResetData()">
+              <label class="form-label" style="color:var(--danger)" data-i18n="danger_zone_label">Panganib na Aksyon:</label>
+              <button class="btn btn-danger btn-sm" onclick="confirmResetData()" data-i18n="reset_data_btn">
                 ⚠️ I-reset sa Bagong Sample Sari-Sari Data
               </button>
             </div>
@@ -689,20 +703,20 @@
   <div id="cameraScannerModal" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-header">
-        <h3 class="modal-title">📷 Barcode Scanner Camera</h3>
+        <h3 class="modal-title" data-i18n="modal_camera_title">📷 Barcode Scanner Camera</h3>
         <button class="modal-close" onclick="closeCameraScannerModal()">&times;</button>
       </div>
       <div class="modal-body" style="text-align:center;">
-        <p style="font-size:0.85rem; color:var(--gray-600); margin-bottom:0.75rem;">
+        <p style="font-size:0.85rem; color:var(--gray-600); margin-bottom:0.75rem;" data-i18n="modal_camera_instructions">
           Itapat ang barcode ng paninda sa loob ng kahon.
         </p>
         <div id="cameraReader" style="width:100%; min-height:260px; background:#000; border-radius:var(--radius-md); overflow:hidden;"></div>
         <div style="margin-top:0.75rem; display:flex; justify-content:center; gap:0.5rem;">
-          <button class="btn btn-secondary btn-sm" onclick="switchCamera()">🔄 Palitan ang Camera</button>
+          <button class="btn btn-secondary btn-sm" onclick="switchCamera()" data-i18n="modal_camera_switch">🔄 Palitan ang Camera</button>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeCameraScannerModal()">Isara</button>
+        <button class="btn btn-secondary" onclick="closeCameraScannerModal()" data-i18n="btn_close">Isara</button>
       </div>
     </div>
   </div>
@@ -711,67 +725,67 @@
   <div id="productModal" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-header">
-        <h3 class="modal-title" id="productModalTitle">➕ Magdagdag ng Paninda</h3>
+        <h3 class="modal-title" id="productModalTitle" data-i18n="modal_add_product_title">➕ Magdagdag ng Paninda</h3>
         <button class="modal-close" onclick="closeProductModal()">&times;</button>
       </div>
       <form id="productForm" onsubmit="saveProduct(event)">
         <div class="modal-body">
           <input type="hidden" id="prodEditId">
           <div class="form-group">
-            <label class="form-label">Pangalan ng Produkto *:</label>
+            <label class="form-label" data-i18n="modal_product_name">Pangalan ng Produkto *:</label>
             <input type="text" id="prodName" class="form-control" required placeholder="e.g. Lucky Me! Pancit Canton Kalamansi">
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label">Barcode:</label>
+              <label class="form-label" data-i18n="modal_product_barcode">Barcode:</label>
               <input type="text" id="prodBarcode" class="form-control" placeholder="I-scan o maglagay ng code">
             </div>
             <div class="form-group">
-              <label class="form-label">Kategorya:</label>
+              <label class="form-label" data-i18n="modal_product_category">Kategorya:</label>
               <input type="text" id="prodCategory" class="form-control" list="categoryDatalist" placeholder="e.g. Canned Goods, Instant Noodles">
               <datalist id="categoryDatalist"></datalist>
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label">Yunit (Unit):</label>
+              <label class="form-label" data-i18n="modal_product_unit">Yunit (Unit):</label>
               <input type="text" id="prodUnit" class="form-control" placeholder="e.g. pack, sachet, can, kilo, pc">
             </div>
             <div class="form-group">
-              <label class="form-label">Puhunan (Cost ₱) *:</label>
+              <label class="form-label" data-i18n="modal_product_cost">Puhunan (Cost ₱) *:</label>
               <input type="number" step="0.25" id="prodCost" class="form-control" required placeholder="0.00" oninput="calculateMarginPreview()">
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label">Benta (Selling Price ₱) *:</label>
+              <label class="form-label" data-i18n="modal_product_price">Benta (Selling Price ₱) *:</label>
               <input type="number" step="0.25" id="prodPrice" class="form-control" required placeholder="0.00" oninput="calculateMarginPreview()">
             </div>
             <div class="form-group">
-              <label class="form-label">Kasalukuyang Stock *:</label>
+              <label class="form-label" data-i18n="modal_product_stock">Kasalukuyang Stock *:</label>
               <input type="number" id="prodStock" class="form-control" required placeholder="0" min="0">
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label">Low Stock Warning Limit:</label>
+              <label class="form-label" data-i18n="modal_product_min_stock">Low Stock Warning Limit:</label>
               <input type="number" id="prodMinStock" class="form-control" value="5" min="1">
             </div>
             <div class="form-group">
-              <label class="form-label">Tubo (Profit Margin):</label>
+              <label class="form-label" data-i18n="modal_product_margin">Tubo (Profit Margin):</label>
               <div id="marginPreviewDisplay" style="padding:0.65rem 0.85rem; font-weight:700; color:var(--primary-dark); background:var(--primary-light); border-radius:var(--radius-md);">
                 ₱0.00 (0%)
               </div>
             </div>
           </div>
           <div class="form-group">
-            <label class="form-label">Paglalarawan / Deskripsyon:</label>
+            <label class="form-label" data-i18n="modal_product_desc">Paglalarawan / Deskripsyon:</label>
             <input type="text" id="prodDesc" class="form-control" placeholder="Maikling impormasyon tungkol sa produkto">
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" onclick="closeProductModal()">Kanselahin</button>
-          <button type="submit" class="btn btn-primary">💾 I-save ang Produkto</button>
+          <button type="button" class="btn btn-secondary" onclick="closeProductModal()" data-i18n="btn_cancel">Kanselahin</button>
+          <button type="submit" class="btn btn-primary" data-i18n="btn_save_product">💾 I-save ang Produkto</button>
         </div>
       </form>
     </div>
@@ -781,7 +795,7 @@
   <div id="restockModal" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-header">
-        <h3 class="modal-title">📦 Restock / Dagdag-Paninda</h3>
+        <h3 class="modal-title" data-i18n="modal_restock_title">📦 Restock / Dagdag-Paninda</h3>
         <button class="modal-close" onclick="closeRestockModal()">&times;</button>
       </div>
       <form id="restockForm" onsubmit="saveRestock(event)">
@@ -792,7 +806,7 @@
             <small id="restockProdStockInfo" style="color:var(--gray-600);"></small>
           </div>
           <div class="form-group">
-            <label class="form-label">Dami ng Idaragdag (Quantity to Add) *:</label>
+            <label class="form-label" data-i18n="modal_restock_qty">Dami ng Idaragdag (Quantity to Add) *:</label>
             <input type="number" id="restockQty" class="form-control" required min="1" value="12" oninput="calculateRestockCostPreview()">
           </div>
           <!-- Quick increment chips -->
@@ -802,7 +816,7 @@
             <button type="button" class="quick-bill-btn" onclick="addRestockQty(24)">+24 (1 Box)</button>
           </div>
           <div class="form-group">
-            <label class="form-label">Dahilan (Reason):</label>
+            <label class="form-label" data-i18n="modal_restock_reason">Dahilan (Reason):</label>
             <select id="restockReason" class="form-control">
               <option value="Restock mula sa Supplier">Restock mula sa Supplier / Delivery</option>
               <option value="Physical Count Correction">Physical Inventory Count Correction</option>
@@ -810,12 +824,12 @@
             </select>
           </div>
           <div style="background:#ecfdf5; padding:0.75rem; border-radius:var(--radius-md); color:#065f46; font-size:0.875rem;">
-            Kailangan na Puhunan: <strong id="restockCapitalPreview">₱0.00</strong>
+            <span data-i18n="modal_restock_capital">Kailangan na Puhunan:</span> <strong id="restockCapitalPreview">₱0.00</strong>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" onclick="closeRestockModal()">Kanselahin</button>
-          <button type="submit" class="btn btn-accent">✅ I-update ang Stock</button>
+          <button type="button" class="btn btn-secondary" onclick="closeRestockModal()" data-i18n="btn_cancel">Kanselahin</button>
+          <button type="submit" class="btn btn-accent" data-i18n="btn_apply_restock">✅ I-update ang Stock</button>
         </div>
       </form>
     </div>
@@ -825,37 +839,37 @@
   <div id="customerModal" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-header">
-        <h3 class="modal-title">➕ Maglista ng Bagong Suki</h3>
+        <h3 class="modal-title" data-i18n="modal_customer_title">➕ Maglista ng Bagong Suki</h3>
         <button class="modal-close" onclick="closeCustomerModal()">&times;</button>
       </div>
       <form id="customerForm" onsubmit="saveCustomer(event)">
         <div class="modal-body">
           <div class="form-group">
-            <label class="form-label">Pangalan ng Suki *:</label>
+            <label class="form-label" data-i18n="modal_customer_name">Pangalan ng Suki *:</label>
             <input type="text" id="custName" class="form-control" required placeholder="e.g. Aling Marites Cruz">
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label">Telepono / CP Number:</label>
+              <label class="form-label" data-i18n="modal_customer_phone">Telepono / CP Number:</label>
               <input type="text" id="custPhone" class="form-control" placeholder="e.g. 0918-123-4567">
             </div>
             <div class="form-group">
-              <label class="form-label">Credit Limit (₱) *:</label>
+              <label class="form-label" data-i18n="modal_customer_limit">Credit Limit (₱) *:</label>
               <input type="number" id="custCreditLimit" class="form-control" value="1000" min="100">
             </div>
           </div>
           <div class="form-group">
-            <label class="form-label">Tirahan / Address:</label>
+            <label class="form-label" data-i18n="modal_customer_address">Tirahan / Address:</label>
             <input type="text" id="custAddress" class="form-control" placeholder="e.g. Purok 2, tabi ng tindahan">
           </div>
           <div class="form-group">
-            <label class="form-label">Tala / Notes (Kailan sumasahod, etc.):</label>
+            <label class="form-label" data-i18n="modal_customer_notes">Tala / Notes (Kailan sumasahod, etc.):</label>
             <textarea id="custNotes" class="form-control" rows="2" placeholder="e.g. Nagbabayad tuwing kinsenas"></textarea>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" onclick="closeCustomerModal()">Kanselahin</button>
-          <button type="submit" class="btn btn-primary">💾 I-save ang Suki</button>
+          <button type="button" class="btn btn-secondary" onclick="closeCustomerModal()" data-i18n="btn_cancel">Kanselahin</button>
+          <button type="submit" class="btn btn-primary" data-i18n="btn_save_customer">💾 I-save ang Suki</button>
         </div>
       </form>
     </div>
@@ -865,7 +879,7 @@
   <div id="utangPayModal" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-header">
-        <h3 class="modal-title">💰 Magbayad ng Utang / Hulog</h3>
+        <h3 class="modal-title" data-i18n="modal_pay_title">💰 Magbayad ng Utang / Hulog</h3>
         <button class="modal-close" onclick="closeUtangPayModal()">&times;</button>
       </div>
       <form id="utangPayForm" onsubmit="saveUtangPayment(event)">
@@ -874,23 +888,23 @@
           <div style="background:var(--gray-100); padding:0.75rem; border-radius:var(--radius-md); margin-bottom:1rem;">
             <strong id="payCustomerName" style="font-size:1rem; display:block;"></strong>
             <div style="font-size:0.875rem; color:var(--gray-700); margin-top:0.25rem;">
-              Kasalukuyang Utang: <strong id="payCurrentBalance" style="color:var(--danger); font-size:1.1rem;">₱0.00</strong>
+              <span data-i18n="modal_pay_current_balance">Kasalukuyang Utang:</span> <strong id="payCurrentBalance" style="color:var(--danger); font-size:1.1rem;">₱0.00</strong>
             </div>
           </div>
           <div class="form-group">
-            <label class="form-label">Halaga ng Ibabayad (Amount to Pay) *:</label>
+            <label class="form-label" data-i18n="modal_pay_amount">Halaga ng Ibabayad (Amount to Pay) *:</label>
             <input type="number" step="0.25" id="payAmountInput" class="form-control" required placeholder="0.00" oninput="calculateRemainingBalancePreview()">
           </div>
           <!-- Quick pay buttons -->
           <div style="display:flex; gap:0.35rem; margin-bottom:1rem;">
-            <button type="button" class="quick-bill-btn" onclick="setFullPayment()">Buong Utang (Full)</button>
+            <button type="button" class="quick-bill-btn" onclick="setFullPayment()" data-i18n="btn_pay_full">Buong Utang (Full)</button>
             <button type="button" class="quick-bill-btn" onclick="setPartialPayment(50)">₱50</button>
             <button type="button" class="quick-bill-btn" onclick="setPartialPayment(100)">₱100</button>
             <button type="button" class="quick-bill-btn" onclick="setPartialPayment(200)">₱200</button>
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label">Paraan ng Bayad:</label>
+              <label class="form-label" data-i18n="modal_pay_method">Paraan ng Bayad:</label>
               <select id="payMethodSelect" class="form-control">
                 <option value="Cash">Cash</option>
                 <option value="GCash">GCash</option>
@@ -898,20 +912,20 @@
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label">Natitirang Balanse:</label>
+              <label class="form-label" data-i18n="modal_pay_remaining">Natitirang Balanse:</label>
               <div id="payRemainingPreview" style="padding:0.65rem 0.85rem; font-weight:700; color:#065f46; background:#ecfdf5; border-radius:var(--radius-md);">
                 ₱0.00
               </div>
             </div>
           </div>
           <div class="form-group">
-            <label class="form-label">Tala / Mensahe:</label>
+            <label class="form-label" data-i18n="modal_pay_notes">Tala / Mensahe:</label>
             <input type="text" id="payNotesInput" class="form-control" placeholder="Halimbawa: Hulog sa bigas at de lata">
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" onclick="closeUtangPayModal()">Kanselahin</button>
-          <button type="submit" class="btn btn-accent">✅ Tanggapin ang Bayad</button>
+          <button type="button" class="btn btn-secondary" onclick="closeUtangPayModal()" data-i18n="btn_cancel">Kanselahin</button>
+          <button type="submit" class="btn btn-accent" data-i18n="btn_confirm_payment">✅ Tanggapin ang Bayad</button>
         </div>
       </form>
     </div>
@@ -927,29 +941,29 @@
       <div class="modal-body">
         <div style="display:flex; justify-content:space-between; background:var(--gray-100); padding:0.75rem 1rem; border-radius:var(--radius-md); margin-bottom:1rem;">
           <div>
-            <div style="font-size:0.75rem; color:var(--gray-600);">Kabuuang Na-utang:</div>
+            <div style="font-size:0.75rem; color:var(--gray-600);" data-i18n="modal_ledger_charged">Kabuuang Na-utang:</div>
             <strong id="ledgerTotalCharged" style="color:var(--danger)">₱0.00</strong>
           </div>
           <div>
-            <div style="font-size:0.75rem; color:var(--gray-600);">Kabuuang Naibayad:</div>
+            <div style="font-size:0.75rem; color:var(--gray-600);" data-i18n="modal_ledger_paid">Kabuuang Naibayad:</div>
             <strong id="ledgerTotalPaid" style="color:var(--accent-hover)">₱0.00</strong>
           </div>
           <div>
-            <div style="font-size:0.75rem; color:var(--gray-600);">Kasalukuyang Balanse:</div>
+            <div style="font-size:0.75rem; color:var(--gray-600);" data-i18n="modal_ledger_balance">Kasalukuyang Balanse:</div>
             <strong id="ledgerCurrentBalance" style="font-size:1.15rem; color:var(--primary-dark)">₱0.00</strong>
           </div>
         </div>
 
-        <h4 style="font-size:0.9rem; font-weight:700; margin-bottom:0.5rem;">Kasaysayan ng Transaksyon:</h4>
+        <h4 style="font-size:0.9rem; font-weight:700; margin-bottom:0.5rem;" data-i18n="modal_ledger_history_title">Kasaysayan ng Transaksyon:</h4>
         <div class="table-responsive" style="max-height:300px; overflow-y:auto; margin-top:0;">
           <table class="data-table" style="font-size:0.8rem;">
             <thead>
               <tr>
-                <th>Petsa</th>
-                <th>Uri</th>
-                <th>Deskripsyon</th>
-                <th>Halaga</th>
-                <th>Balanse</th>
+                <th data-i18n="th_date">Petsa</th>
+                <th data-i18n="th_type">Uri</th>
+                <th data-i18n="th_desc">Deskripsyon</th>
+                <th data-i18n="th_amount">Halaga</th>
+                <th data-i18n="th_balance">Balanse</th>
               </tr>
             </thead>
             <tbody id="ledgerHistoryBody">
@@ -959,7 +973,7 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeCustomerLedgerModal()">Isara</button>
+        <button class="btn btn-secondary" onclick="closeCustomerLedgerModal()" data-i18n="btn_close">Isara</button>
       </div>
     </div>
   </div>
@@ -968,22 +982,22 @@
   <div id="smsReminderModal" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-header">
-        <h3 class="modal-title">📱 Paalala sa Utang (SMS Notice)</h3>
+        <h3 class="modal-title" data-i18n="modal_sms_title">📱 Paalala sa Utang (SMS Notice)</h3>
         <button class="modal-close" onclick="closeSmsReminderModal()">&times;</button>
       </div>
       <div class="modal-body">
-        <p style="font-size:0.85rem; color:var(--gray-600); margin-bottom:0.75rem;">
+        <p style="font-size:0.85rem; color:var(--gray-600); margin-bottom:0.75rem;" data-i18n="modal_sms_desc">
           Magalang at maayos na template ng mensahe para sa iyong suki:
         </p>
         <textarea id="smsMessageTemplate" class="form-control" rows="5"></textarea>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.75rem;">
           <small style="color:var(--gray-500);">I-click ang kopyahin o buksan sa SMS app ng telepono.</small>
-          <button class="btn btn-primary btn-sm" onclick="copySmsText()">📋 Kopyahin</button>
+          <button class="btn btn-primary btn-sm" onclick="copySmsText()" data-i18n="btn_copy_sms">📋 Kopyahin</button>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeSmsReminderModal()">Isara</button>
-        <a id="smsDirectLink" href="#" class="btn btn-accent">📲 Buksan sa SMS</a>
+        <button class="btn btn-secondary" onclick="closeSmsReminderModal()" data-i18n="btn_close">Isara</button>
+        <a id="smsDirectLink" href="#" class="btn btn-accent" data-i18n="btn_open_sms">📲 Buksan sa SMS</a>
       </div>
     </div>
   </div>
@@ -992,7 +1006,7 @@
   <div id="thermalReceiptModal" class="modal-overlay">
     <div class="modal-content" style="max-width:380px;">
       <div class="modal-header no-print">
-        <h3 class="modal-title">🧾 Resibo ng Tindahan</h3>
+        <h3 class="modal-title" data-i18n="modal_receipt_title">🧾 Resibo ng Tindahan</h3>
         <button class="modal-close" onclick="closeThermalReceiptModal()">&times;</button>
       </div>
       <div class="modal-body" style="padding:0.75rem;">
@@ -1003,8 +1017,8 @@
         </div>
       </div>
       <div class="modal-footer no-print">
-        <button class="btn btn-secondary" onclick="closeThermalReceiptModal()">Isara</button>
-        <button class="btn btn-primary" onclick="printReceiptNow()">🖨️ I-print ang Resibo</button>
+        <button class="btn btn-secondary" onclick="closeThermalReceiptModal()" data-i18n="btn_close">Isara</button>
+        <button class="btn btn-primary" onclick="printReceiptNow()" data-i18n="btn_print_receipt">🖨️ I-print ang Resibo</button>
       </div>
     </div>
   </div>
@@ -1013,13 +1027,13 @@
   <div id="expenseModal" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-header">
-        <h3 class="modal-title">💸 Magtala ng Gastusin sa Tindahan</h3>
+        <h3 class="modal-title" data-i18n="modal_expense_title">💸 Magtala ng Gastusin sa Tindahan</h3>
         <button class="modal-close" onclick="closeExpenseModal()">&times;</button>
       </div>
       <form id="expenseForm" onsubmit="saveExpense(event)">
         <div class="modal-body">
           <div class="form-group">
-            <label class="form-label">Kategorya ng Gastusin *:</label>
+            <label class="form-label" data-i18n="modal_expense_category">Kategorya ng Gastusin *:</label>
             <select id="expCategory" class="form-control" required>
               <option value="Store Supplies">Store Supplies (Yelo, Plastic, Supot, Tape)</option>
               <option value="Pamasahe / Delivery">Pamasahe sa Palengke / Delivery Fee</option>
@@ -1030,16 +1044,16 @@
             </select>
           </div>
           <div class="form-group">
-            <label class="form-label">Deskripsyon *:</label>
+            <label class="form-label" data-i18n="modal_expense_desc">Deskripsyon *:</label>
             <input type="text" id="expDescription" class="form-control" required placeholder="e.g. 5 supot ng yelo para sa softdrinks">
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label">Halaga (Amount ₱) *:</label>
+              <label class="form-label" data-i18n="modal_expense_amount">Halaga (Amount ₱) *:</label>
               <input type="number" step="0.5" id="expAmount" class="form-control" required placeholder="0.00" min="1">
             </div>
             <div class="form-group">
-              <label class="form-label">Paraan ng Bayad:</label>
+              <label class="form-label" data-i18n="modal_expense_payment">Paraan ng Bayad:</label>
               <select id="expPaymentMethod" class="form-control">
                 <option value="Cash">Cash mula sa Benta</option>
                 <option value="GCash">GCash</option>
@@ -1049,8 +1063,8 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" onclick="closeExpenseModal()">Kanselahin</button>
-          <button type="submit" class="btn btn-danger">💾 Itala ang Gastos</button>
+          <button type="button" class="btn btn-secondary" onclick="closeExpenseModal()" data-i18n="btn_cancel">Kanselahin</button>
+          <button type="submit" class="btn btn-danger" data-i18n="btn_save_expense">💾 Itala ang Gastos</button>
         </div>
       </form>
     </div>

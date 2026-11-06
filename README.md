@@ -123,3 +123,4 @@ nas/
 
 ## ⚖️ License
 MIT License. Built for the Filipino entrepreneur and small retail businesses.
+

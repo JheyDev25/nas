@@ -1,5 +1,6 @@
 // Utak-Tindahan AI - Smart Business Intelligence & Sales Insights Engine
 // Specifically engineered for Philippine Sari-Sari Stores, Mini Groceries, and Small Retailers
+// Supports Bilingual Analysis: Filipino (Tagalog/Taglish) & English
 
 class AIEngine {
   constructor(storage) {
@@ -68,12 +69,16 @@ class AIEngine {
             ? `UBOS NA! (${p.name}). Nawawalan ka ng benta. Mag-order agad ng ${suggestedQty} ${p.unit}.`
             : urgency === 'CRITICAL'
             ? `Peligro maubusan sa loob ng ${daysRemaining <= 1 ? '1 araw' : daysRemaining.toFixed(0) + ' araw'}! Mag-restock ng ${suggestedQty} ${p.unit} (Puhunan: ₱${estimatedCost.toFixed(2)}).`
-            : `Pababa na ang stock (${currentStock} natitira). Mainam mag-order bago mag-weekend.`
+            : `Pababa na ang stock (${currentStock} natitira). Mainam mag-order bago mag-weekend.`,
+          messageEn: urgency === 'OUT_OF_STOCK'
+            ? `OUT OF STOCK! (${p.name}). You are losing sales. Reorder ${suggestedQty} ${p.unit} immediately.`
+            : urgency === 'CRITICAL'
+            ? `Risk of running out in ${daysRemaining <= 1 ? '1 day' : daysRemaining.toFixed(0) + ' days'}! Reorder ${suggestedQty} ${p.unit} (Cost: ₱${estimatedCost.toFixed(2)}).`
+            : `Stock is running low (${currentStock} left). Good time to reorder before the weekend.`
         });
       }
     });
 
-    // Sort: OUT_OF_STOCK first, then CRITICAL, then WARNING
     const urgencyWeight = { OUT_OF_STOCK: 3, CRITICAL: 2, WARNING: 1, NORMAL: 0 };
     predictions.sort((a, b) => urgencyWeight[b.urgency] - urgencyWeight[a.urgency] || a.daysRemaining - b.daysRemaining);
 
@@ -107,7 +112,8 @@ class AIEngine {
           costPrice: p.costPrice,
           tiedCapital: Number(tiedCapital.toFixed(2)),
           sellingPrice: p.sellingPrice,
-          suggestion: `Nakatenggang puhunan: ₱${tiedCapital.toFixed(2)}. Subukang i-bundle bilang promo o bawasan ang presyo ng ₱1.00 para maibalik agad ang puhunan.`
+          suggestion: `Nakatenggang puhunan: ₱${tiedCapital.toFixed(2)}. Subukang i-bundle bilang promo o bawasan ang presyo ng ₱1.00 para maibalik agad ang puhunan.`,
+          suggestionEn: `Stagnant capital: ₱${tiedCapital.toFixed(2)}. Try bundling as a promo or discounting by ₱1.00 to quickly recoup capital.`
         });
       }
     });
@@ -152,7 +158,9 @@ class AIEngine {
           combinedRetail,
           suggestedBundlePrice,
           comboTitle: `Combo Tipid Merienda: ${itemNames[idA]} + ${itemNames[idB]}`,
-          pitch: `Binili nang sabay sa ${count} na resibo. Gumawa ng combo bundle sa presyong ₱${suggestedBundlePrice.toFixed(2)} para mahikayat ang iba pang suki!`
+          comboTitleEn: `Saver Bundle: ${itemNames[idA]} + ${itemNames[idB]}`,
+          pitch: `Binili nang sabay sa ${count} na resibo. Gumawa ng combo bundle sa presyong ₱${suggestedBundlePrice.toFixed(2)} para mahikayat ang iba pang suki!`,
+          pitchEn: `Purchased together in ${count} sales receipts. Create a combo bundle at ₱${suggestedBundlePrice.toFixed(2)} to encourage more purchases!`
         };
       })
       .filter(c => c.frequency >= 1)
@@ -163,7 +171,8 @@ class AIEngine {
   }
 
   // 4. Daily AI Executive Summary & Store Health
-  getDailyExecutiveBriefing() {
+  getDailyExecutiveBriefing(lang = 'fil') {
+    const isEn = lang === 'en';
     const analytics = this.storage.getAnalyticsSummary();
     const restock = this.getRestockPredictions();
     const deadStock = this.getDeadStockAnalysis();
@@ -176,47 +185,71 @@ class AIEngine {
 
     // Evaluate revenue & net profit
     if (analytics.grossSales > 0) {
-      highlights.push(`Kabuuang Benta Ngayong Araw: ₱${analytics.grossSales.toFixed(2)} (${analytics.transactionCount} transactions).`);
-      highlights.push(`Tunay na Tubo (Net Profit): ₱${analytics.netProfit.toFixed(2)} matapos ibawas ang ₱${analytics.totalExpenses.toFixed(2)} na gastusin.`);
+      if (isEn) {
+        highlights.push(`Total Sales Today: ₱${analytics.grossSales.toFixed(2)} (${analytics.transactionCount} transactions).`);
+        highlights.push(`True Net Profit: ₱${analytics.netProfit.toFixed(2)} after deducting ₱${analytics.totalExpenses.toFixed(2)} in operational expenses.`);
+      } else {
+        highlights.push(`Kabuuang Benta Ngayong Araw: ₱${analytics.grossSales.toFixed(2)} (${analytics.transactionCount} transactions).`);
+        highlights.push(`Tunay na Tubo (Net Profit): ₱${analytics.netProfit.toFixed(2)} matapos ibawas ang ₱${analytics.totalExpenses.toFixed(2)} na gastusin.`);
+      }
     } else {
       healthScore -= 10;
-      highlights.push(`Wala pang naitatalang benta ngayong araw.`);
+      highlights.push(isEn ? `No sales recorded yet today.` : `Wala pang naitatalang benta ngayong araw.`);
     }
 
     // Profit margin check
     if (analytics.profitMarginPct >= 20) {
-      highlights.push(`Maganda ang margin ng tindahan: ${analytics.profitMarginPct.toFixed(1)}% ang tubo sa benta.`);
+      highlights.push(isEn 
+        ? `Healthy profit margin: ${analytics.profitMarginPct.toFixed(1)}% return on sales.` 
+        : `Maganda ang margin ng tindahan: ${analytics.profitMarginPct.toFixed(1)}% ang tubo sa benta.`);
     } else if (analytics.profitMarginPct > 0) {
       healthScore -= 5;
-      highlights.push(`Medyo mababa ang margin (${analytics.profitMarginPct.toFixed(1)}%). Suriin ang mga presyo ng paninda.`);
+      highlights.push(isEn 
+        ? `Slightly low margin (${analytics.profitMarginPct.toFixed(1)}%). Review your pricing.` 
+        : `Medyo mababa ang margin (${analytics.profitMarginPct.toFixed(1)}%). Suriin ang mga presyo ng paninda.`);
     }
 
     // Low stock checks
     const criticalRestock = restock.filter(r => r.urgency === 'OUT_OF_STOCK' || r.urgency === 'CRITICAL');
     if (criticalRestock.length > 0) {
       healthScore -= criticalRestock.length * 4;
-      actionItems.push(`May ${criticalRestock.length} produkto na dapat nang i-restock agad (${criticalRestock.map(r => r.name).slice(0, 3).join(', ')}).`);
+      actionItems.push(isEn 
+        ? `${criticalRestock.length} products urgently require restocking (${criticalRestock.map(r => r.name).slice(0, 3).join(', ')}).`
+        : `May ${criticalRestock.length} produkto na dapat nang i-restock agad (${criticalRestock.map(r => r.name).slice(0, 3).join(', ')}).`);
     }
 
     // Utang checks
     if (analytics.totalOutstandingUtang > 0) {
       if (analytics.totalOutstandingUtang > 2000) {
         healthScore -= 10;
-        actionItems.push(`Medyo mataas ang pautang: ₱${analytics.totalOutstandingUtang.toFixed(2)} ang kabuuang utang. Paalalahanan ang mga suki.`);
+        actionItems.push(isEn 
+          ? `Outstanding debt is high: ₱${analytics.totalOutstandingUtang.toFixed(2)} total credit. Follow up with customers.`
+          : `Medyo mataas ang pautang: ₱${analytics.totalOutstandingUtang.toFixed(2)} ang kabuuang utang. Paalalahanan ang mga suki.`);
       } else {
-        highlights.push(`Kontrolado ang pautang: ₱${analytics.totalOutstandingUtang.toFixed(2)} kabuuan.`);
+        highlights.push(isEn 
+          ? `Customer debt is under control: ₱${analytics.totalOutstandingUtang.toFixed(2)} total.`
+          : `Kontrolado ang pautang: ₱${analytics.totalOutstandingUtang.toFixed(2)} kabuuan.`);
       }
     }
 
     if (highDebtCustomers.length > 0) {
-      actionItems.push(`${highDebtCustomers.length} customer ang malapit na sa credit limit: ${highDebtCustomers.map(c => `${c.name} (₱${c.currentBalance})`).join(', ')}.`);
+      actionItems.push(isEn 
+        ? `${highDebtCustomers.length} customers are near their credit limits: ${highDebtCustomers.map(c => `${c.name} (₱${c.currentBalance})`).join(', ')}.`
+        : `${highDebtCustomers.length} customer ang malapit na sa credit limit: ${highDebtCustomers.map(c => `${c.name} (₱${c.currentBalance})`).join(', ')}.`);
     }
 
     healthScore = Math.max(30, Math.min(100, healthScore));
 
-    let statusGreeting = 'Maganda at matatag ang takbo ng iyong tindahan!';
-    if (healthScore >= 90) statusGreeting = 'Napakagaling! Napakalusog at masigla ang operasyon ng tindahan mo ngayon!';
-    else if (healthScore < 70) statusGreeting = 'Kailangan ng pansin sa imbentaryo at paniningil ng pautang para mapanatiling ligtas ang cash flow.';
+    let statusGreeting = isEn ? 'Your store operations are running healthy and steady!' : 'Maganda at matatag ang takbo ng iyong tindahan!';
+    if (healthScore >= 90) {
+      statusGreeting = isEn 
+        ? 'Outstanding! Your store performance and cash flow are in peak condition today!' 
+        : 'Napakagaling! Napakalusog at masigla ang operasyon ng tindahan mo ngayon!';
+    } else if (healthScore < 70) {
+      statusGreeting = isEn 
+        ? 'Attention needed on inventory reorders and customer credit collection to maintain cash flow.' 
+        : 'Kailangan ng pansin sa imbentaryo at paniningil ng pautang para mapanatiling ligtas ang cash flow.';
+    }
 
     return {
       date: analytics.date,
@@ -232,56 +265,94 @@ class AIEngine {
   }
 
   // 5. Natural Language Ask AI Engine
-  askAI(question) {
+  askAI(question, lang = 'fil') {
     const q = (question || '').toLowerCase();
+    const isEn = lang === 'en';
     const analytics = this.storage.getAnalyticsSummary();
     const customers = this.storage.getCustomers();
     const products = this.storage.getProducts();
     const restock = this.getRestockPredictions();
+    const settings = this.storage.getSettings() || {};
+    const storeName = settings.name || (isEn ? 'Our Store' : 'Vibe Tindahan');
 
-    if (q.includes('utang') || q.includes('pautang') || q.includes('suki')) {
+    if (q.includes('utang') || q.includes('pautang') || q.includes('debt') || q.includes('credit') || q.includes('suki') || q.includes('customer')) {
       const topDebtors = customers.slice(0, 3);
-      const debtorList = topDebtors.map(c => `• ${c.name}: ₱${c.currentBalance.toFixed(2)} (Limit: ₱${c.creditLimit})`).join('\n');
-      return {
-        answer: `Ang kabuuang pautang ng tindahan ay ₱${analytics.totalOutstandingUtang.toFixed(2)} across ${customers.length} na suki.\n\nNangungunang may balanse:\n${debtorList}\n\nTip ni AI: Magpadala ng magalang na SMS reminder tuwing kinsenas at katapusan gamit ang aming SMS button sa Utang Tracker.`
-      };
+      if (isEn) {
+        const debtorList = topDebtors.map(c => `• ${c.name}: ₱${c.currentBalance.toFixed(2)} (Limit: ₱${c.creditLimit})`).join('\n');
+        return {
+          answer: `Total outstanding customer debt across ${customers.length} registered customers is ₱${analytics.totalOutstandingUtang.toFixed(2)}.\n\nTop active balances:\n${debtorList}\n\nAI Tip: Send polite reminders on the 15th and end of the month using our SMS reminder button in the Debt Ledger.`
+        };
+      } else {
+        const debtorList = topDebtors.map(c => `• ${c.name}: ₱${c.currentBalance.toFixed(2)} (Limit: ₱${c.creditLimit})`).join('\n');
+        return {
+          answer: `Ang kabuuang pautang ng tindahan ay ₱${analytics.totalOutstandingUtang.toFixed(2)} across ${customers.length} na suki.\n\nNangungunang may balanse:\n${debtorList}\n\nTip ni AI: Magpadala ng magalang na SMS reminder tuwing kinsenas at katapusan gamit ang aming SMS button sa Utang Tracker.`
+        };
+      }
     }
 
-    if (q.includes('benta') || q.includes('kinita') || q.includes('sales') || q.includes('tubo') || q.includes('profit')) {
-      return {
-        answer: `Narito ang financial status ngayong araw:\n• Kabuuang Benta: ₱${analytics.grossSales.toFixed(2)}\n• Puhunan ng Nabenta: ₱${analytics.totalCost.toFixed(2)}\n• Gross Profit (Tubo sa Produkto): ₱${analytics.grossProfit.toFixed(2)}\n• Gastusin sa Tindahan: ₱${analytics.totalExpenses.toFixed(2)}\n• TUNAY NA KITA (Net Profit): ₱${analytics.netProfit.toFixed(2)}\n\nNakatala ang ${analytics.transactionCount} na benta na may average na ₱${analytics.averageTicket.toFixed(2)} bawat customer.`
-      };
+    if (q.includes('benta') || q.includes('kinita') || q.includes('sales') || q.includes('tubo') || q.includes('profit') || q.includes('earn') || q.includes('revenue')) {
+      if (isEn) {
+        return {
+          answer: `Here is today's financial performance summary:\n• Gross Revenue: ₱${analytics.grossSales.toFixed(2)}\n• Cost of Goods Sold: ₱${analytics.totalCost.toFixed(2)}\n• Gross Margin: ₱${analytics.grossProfit.toFixed(2)}\n• Operating Expenses: ₱${analytics.totalExpenses.toFixed(2)}\n• TRUE NET PROFIT: ₱${analytics.netProfit.toFixed(2)}\n\nLogged ${analytics.transactionCount} transactions today with an average basket spend of ₱${analytics.averageTicket.toFixed(2)} per customer.`
+        };
+      } else {
+        return {
+          answer: `Narito ang financial status ngayong araw:\n• Kabuuang Benta: ₱${analytics.grossSales.toFixed(2)}\n• Puhunan ng Nabenta: ₱${analytics.totalCost.toFixed(2)}\n• Gross Profit (Tubo sa Produkto): ₱${analytics.grossProfit.toFixed(2)}\n• Gastusin sa Tindahan: ₱${analytics.totalExpenses.toFixed(2)}\n• TUNAY NA KITA (Net Profit): ₱${analytics.netProfit.toFixed(2)}\n\nNakatala ang ${analytics.transactionCount} na benta na may average na ₱${analytics.averageTicket.toFixed(2)} bawat customer.`
+        };
+      }
     }
 
-    if (q.includes('restock') || q.includes('order') || q.includes('ubos') || q.includes('stock')) {
+    if (q.includes('restock') || q.includes('order') || q.includes('ubos') || q.includes('stock') || q.includes('inventory')) {
       const critical = restock.filter(r => r.urgency === 'OUT_OF_STOCK' || r.urgency === 'CRITICAL');
       if (critical.length === 0) {
         return {
-          answer: `Ligtas ang iyong mga paninda! Walang agarang critically low-stock na produkto sa ngayon.`
+          answer: isEn ? `All products have healthy inventory! No critically low stock at this time.` : `Ligtas ang iyong mga paninda! Walang agarang critically low-stock na produkto sa ngayon.`
         };
       }
-      const items = critical.slice(0, 5).map(r => `• ${r.name}: ${r.currentStock} pcs natitira (Mag-order ng ${r.suggestedRestockQty} pcs, kailangan ng ₱${r.estimatedCost.toFixed(2)} puhunan)`).join('\n');
-      return {
-        answer: `May ${critical.length} produkto na kailangan nang i-restock agad para hindi mawalan ng suki:\n${items}`
-      };
+      if (isEn) {
+        const items = critical.slice(0, 5).map(r => `• ${r.name}: ${r.currentStock} pcs remaining (Order ${r.suggestedRestockQty} pcs, requires ₱${r.estimatedCost.toFixed(2)} capital)`).join('\n');
+        return {
+          answer: `There are ${critical.length} items that urgently require restocking to avoid losing sales:\n${items}`
+        };
+      } else {
+        const items = critical.slice(0, 5).map(r => `• ${r.name}: ${r.currentStock} pcs natitira (Mag-order ng ${r.suggestedRestockQty} pcs, kailangan ng ₱${r.estimatedCost.toFixed(2)} puhunan)`).join('\n');
+        return {
+          answer: `May ${critical.length} produkto na kailangan nang i-restock agad para hindi mawalan ng suki:\n${items}`
+        };
+      }
     }
 
-    if (q.includes('best seller') || q.includes('mabili') || q.includes('lakas')) {
+    if (q.includes('best seller') || q.includes('mabili') || q.includes('lakas') || q.includes('popular') || q.includes('top')) {
       if (analytics.topItems.length === 0) {
         return {
-          answer: `Wala pang benta ngayong araw. Pero sa pangkalahatang takbo, ang mga pangunahing mabili ay Instant Noodles (Lucky Me), Kape (Great Taste White), at Bigas.`
+          answer: isEn 
+            ? `No sales recorded today yet. General fast-moving items are Instant Noodles, Coffee, and Rice.`
+            : `Wala pang benta ngayong araw. Pero sa pangkalahatang takbo, ang mga pangunahing mabili ay Instant Noodles (Lucky Me), Kape (Great Taste White), at Bigas.`
         };
       }
-      const topList = analytics.topItems.map(item => `• ${item.name} (${item.qty} nabenta, Benta: ₱${item.revenue.toFixed(2)})`).join('\n');
-      return {
-        answer: `Ito ang pinakamabiling produkto ngayong araw:\n${topList}`
-      };
+      if (isEn) {
+        const topList = analytics.topItems.map(item => `• ${item.name} (${item.qty} units sold, Total: ₱${item.revenue.toFixed(2)})`).join('\n');
+        return {
+          answer: `Today's best-selling products:\n${topList}`
+        };
+      } else {
+        const topList = analytics.topItems.map(item => `• ${item.name} (${item.qty} nabenta, Benta: ₱${item.revenue.toFixed(2)})`).join('\n');
+        return {
+          answer: `Ito ang pinakamabiling produkto ngayong araw:\n${topList}`
+        };
+      }
     }
 
     // Default business advice
-    return {
-      answer: `Halo! Ako si Utak-Tindahan AI. Kasalukuyang nakatala ang ${products.length} na produkto at ${customers.length} na suki sa iyong tindahan.\n\nMay kabuuang ₱${analytics.grossSales.toFixed(2)} na benta ngayong araw na may tunay na kita na ₱${analytics.netProfit.toFixed(2)}.\n\nTip: Panatilihing updated ang iyong mga gastusin (yelo, pamasahe) sa tab na 'Benta at Tubo' upang laging eksakto ang kwenta ng iyong totoong kita!`
-    };
+    if (isEn) {
+      return {
+        answer: `Hello! I am your Store AI Advisor for ${storeName}. Currently tracking ${products.length} products and ${customers.length} registered credit customers.\n\nToday's gross revenue is ₱${analytics.grossSales.toFixed(2)} with true net profit of ₱${analytics.netProfit.toFixed(2)}.\n\nTip: Keep your daily operating expenses updated in the 'Analytics' tab so your net profit calculations are always 100% accurate!`
+      };
+    } else {
+      return {
+        answer: `Halo! Ako si Utak-Tindahan AI ng ${storeName}. Kasalukuyang nakatala ang ${products.length} na produkto at ${customers.length} na suki sa iyong tindahan.\n\nMay kabuuang ₱${analytics.grossSales.toFixed(2)} na benta ngayong araw na may tunay na kita na ₱${analytics.netProfit.toFixed(2)}.\n\nTip: Panatilihing updated ang iyong mga gastusin (yelo, pamasahe) sa tab na 'Benta at Tubo' upang laging eksakto ang kwenta ng iyong totoong kita!`
+      };
+    }
   }
 }
 
